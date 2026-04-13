@@ -37,4 +37,11 @@ urlpatterns = [
 
     # Đăng xuất
     path('DangXuat/', views.DangXuat, name='DangXuat'),
+
+    path('quan-ly/dich-vu/', views.quan_ly_dv_view, name='quan_ly_dv'),
+    path('quan-ly/dich-vu/save/', views.save_service_api, name='save_service_api'),
+    path('quan-ly/dich-vu/delete/', views.delete_service_api, name='delete_service_api'),
+    path('quan-ly/nhan-vien/', views.quan_ly_nv_view, name='quan_ly_nv'),
+    path('quan-ly/nhan-vien/save/', views.save_employee_api, name='save_employee_api'),
+    path('quan-ly/nhan-vien/delete/', views.delete_employee_api, name='delete_employee_api'),
 ]

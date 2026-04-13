@@ -1,0 +1,475 @@
+{% extends 'base_QL.html' %}
+{% load static %}
+
+{% block title %}Quản Lý Nhân Viên - 2000 Nails & Eyelash{% endblock %}
+{% block page_title %}Quản lý nhân viên{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* --- TOOLBAR & SEARCH --- */
+    .content-container { padding: 40px; }
+    .toolbar {
+        background-color: white; padding: 20px; border-radius: 15px;
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 30px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+    .search-box { position: relative; width: 400px; }
+    .search-box input {
+        width: 100%; padding: 12px 15px 12px 45px; border: 1px solid #D1C4BE;
+        border-radius: 12px; outline: none; background-color: #fcfcfc;
+    }
+    .search-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; opacity: 0.6; }
+    .btn-add {
+        background-color: #B69A91; color: white; border: none; padding: 10px 20px;
+        border-radius: 10px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 15px;
+    }
+
+    /* --- TABLE --- */
+    .table-wrapper {
+        background-color: white; border-radius: 15px; overflow-y: auto; max-height: 435px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+    .employee-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    .employee-table thead th {
+        position: sticky; top: 0; background-color: #8B7167; color: white;
+        z-index: 10; height: 60px; padding: 0 15px; font-weight: 500; text-align: left;
+    }
+    .employee-table thead th:first-child { border-top-left-radius: 15px; }
+    .employee-table thead th:last-child { border-top-right-radius: 15px; text-align: center; }
+    
+    .employee-table td { padding: 15px; height: 75px; border-bottom: 1px solid #EEE; color: #444; vertical-align: middle; }
+    .employee-table td:last-child { text-align: center; }
+    
+    .actions { display: flex; justify-content: center; gap: 15px; }
+    .btn-icon { background: none; border: none; cursor: pointer; padding: 0; }
+    .btn-icon img { width: 22px; height: 22px; transition: transform 0.2s; object-fit: contain; }
+    .btn-icon:hover img { transform: scale(1.1); opacity: 0.8;}
+
+    /* --- MODALS / POPUPS --- */
+    .modal-overlay {
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background-color: rgba(0, 0, 0, 0.4); display: none; z-index: 999;
+    }
+    .modal-container {
+        position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        background-color: white; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        width: 600px; display: none; z-index: 1000; overflow: hidden;
+    }
+    .modal-header { background-color: #C5A99E; padding: 20px 30px; color: white; }
+    .modal-header h2 { font-size: 24px; font-weight: 600; margin: 0;}
+    .modal-body { padding: 30px; }
+    .form-group { margin-bottom: 20px; }
+    .phone-group { width: 50%; }
+    .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: #333; font-size: 16px; }
+    .required { color: red; }
+    .form-group input { width: 100%; padding: 12px 15px; border: 1px solid #C5A99E; border-radius: 6px; outline: none; font-size: 15px; }
+    .readonly-input { background-color: #F5F5F5; color: #666; cursor: not-allowed; border: 1px solid #E0E0E0; }
+    .modal-footer { display: flex; justify-content: center; gap: 20px; padding: 0 30px 30px 30px; }
+    .btn-cancel, .btn-save { padding: 12px 40px; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; min-width: 120px; }
+    .btn-cancel { background-color: white; border: 1px solid #CCC; color: #000; }
+    .btn-save { background-color: #B69A91; border: none; color: white; }
+
+    /* Success & Delete Modals */
+    .success-modal { width: 450px; padding: 40px 20px; text-align: center; border-radius: 10px; }
+    .success-icon { width: 60px; height: 60px; margin: 0 auto 15px auto; }
+    .success-title { color: #9A7B70; font-size: 32px; margin-bottom: 10px; }
+    .success-message { font-size: 20px; color: #000; font-weight: 600; }
+    
+    .delete-modal { width: 380px; padding: 30px 20px; text-align: center; border-radius: 8px; }
+    .delete-icon { width: 60px; height: 60px; margin: 0 auto 15px auto; }
+    .delete-message { font-size: 18px; color: #000; font-weight: 600; margin-bottom: 25px; line-height: 1.4; }
+    .delete-actions { display: flex; justify-content: center; gap: 15px; }
+    .btn-cancel-delete, .btn-confirm-delete { padding: 10px 20px; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; min-width: 120px; }
+    .btn-cancel-delete { background-color: white; border: 1px solid #CCC; color: #000; }
+    .btn-confirm-delete { background-color: #EE2B2A; border: none; color: white; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-container">
+    <div class="toolbar">
+        <div class="search-box">
+            <img src="{% static 'icon/18_Timkiem.png' %}" alt="Search" class="search-icon">
+            <input type="text" id="searchInput" placeholder="Tìm kiếm theo tên hoặc mã nhân viên">
+        </div>
+        <button class="btn-add" id="btnOpenAddModal">
+            <span class="plus-icon">+</span> Tạo mới nhân viên
+        </button>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="employee-table">
+            <thead>
+                <tr>
+                    <th style="width: 15%;">Mã NV</th>
+                    <th style="width: 25%;">Họ và tên NV</th>
+                    <th style="width: 15%;">SĐT</th>
+                    <th style="width: 20%;">Tên đăng nhập</th>
+                    <th style="width: 10%;">Mật khẩu</th>
+                    <th style="width: 15%; text-align: center;">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody id="employeeTableBody">
+                </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay"></div>
+
+<div class="modal-container" id="createModal">
+    <div class="modal-header"><h2>Tạo mới nhân viên</h2></div>
+    <div class="modal-body">
+        <div class="form-group">
+            <label>Tên nhân viên <span class="required">*</span></label>
+            <input type="text" id="addName" placeholder="Nhập họ tên">
+        </div>
+        <div class="form-group phone-group">
+            <label>Số điện thoại (10 số) <span class="required">*</span></label>
+            <input type="text" id="addPhone" placeholder="Nhập số điện thoại">
+        </div>
+        <div class="form-group">
+            <label>Tên đăng nhập <span class="required">*</span></label>
+            <input type="text" id="addUsername" placeholder="Nhập tên đăng nhập">
+        </div>
+        <div class="form-group">
+            <label>Mật khẩu <span class="required">*</span></label>
+            <input type="password" id="addPassword" placeholder="Nhập mật khẩu">
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button class="btn-cancel" id="btnCancelAdd">Hủy</button>
+        <button class="btn-save" id="btnSaveAdd">Lưu</button>
+    </div>
+</div>
+
+<div class="modal-container" id="viewModal">
+    <div class="modal-header"><h2>Thông tin nhân viên</h2></div>
+    <div class="modal-body">
+        <div class="form-group">
+            <label>Mã nhân viên</label>
+            <input type="text" id="viewId" readonly class="readonly-input">
+        </div>
+        <div class="form-group">
+            <label>Tên nhân viên</label>
+            <input type="text" id="viewName" readonly class="readonly-input">
+        </div>
+        <div class="form-group phone-group">
+            <label>Số điện thoại</label>
+            <input type="text" id="viewPhone" readonly class="readonly-input">
+        </div>
+        <div class="form-group">
+            <label>Tên đăng nhập</label>
+            <input type="text" id="viewUsername" readonly class="readonly-input">
+        </div>
+        <div class="form-group">
+            <label>Mật khẩu</label>
+            <input type="text" value="********" readonly class="readonly-input">
+        </div>
+    </div>
+    <div class="modal-footer" style="justify-content: flex-end;">
+        <button class="btn-cancel" id="btnCloseView">Đóng</button>
+    </div>
+</div>
+
+<div class="modal-container" id="editModal">
+    <div class="modal-header"><h2>Chỉnh sửa nhân viên</h2></div>
+    <div class="modal-body">
+        <div class="form-group">
+            <label>Mã nhân viên</label>
+            <input type="text" id="editId" readonly class="readonly-input">
+        </div>
+        <div class="form-group">
+            <label>Tên nhân viên <span class="required">*</span></label>
+            <input type="text" id="editName" placeholder="Nhập họ tên">
+        </div>
+        <div class="form-group phone-group">
+            <label>Số điện thoại (10 số) <span class="required">*</span></label>
+            <input type="text" id="editPhone" placeholder="Nhập số điện thoại">
+        </div>
+        <div class="form-group">
+            <label>Tên đăng nhập <span class="required">*</span></label>
+            <input type="text" id="editUsername" placeholder="Nhập tên đăng nhập">
+        </div>
+        <div class="form-group">
+            <label>Mật khẩu mới (Để trống nếu không đổi)</label>
+            <input type="password" id="editPassword" placeholder="Nhập mật khẩu mới">
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button class="btn-cancel" id="btnCancelEdit">Hủy</button>
+        <button class="btn-save" id="btnSaveEdit">Cập nhật</button>
+    </div>
+</div>
+
+<div class="modal-container delete-modal" id="deleteModal">
+    <div class="delete-icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L1 21H23L12 2Z" fill="#E53935"/>
+            <path d="M12 16C12.5523 16 13 16.4477 13 17C13 17.5523 12.5523 18 12 18C11.4477 18 11 17.5523 11 17C11 16.4477 11.4477 16 12 16Z" fill="white"/>
+            <path d="M11 10H13V14H11V10Z" fill="white"/>
+        </svg>
+    </div>
+    <h3 class="delete-message">Bạn có chắc chắn muốn xoá<br>nhân viên này không?</h3>
+    <div class="delete-actions">
+        <button class="btn-cancel-delete" id="btnCancelDelete">Huỷ</button>
+        <button class="btn-confirm-delete" id="btnConfirmDelete">Xác nhận xoá</button>
+    </div>
+</div>
+
+<div class="modal-container success-modal" id="successModal">
+    <div class="success-icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="12" fill="#9CCC65"/>
+            <path d="M7 12.5L10 15.5L17 8.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </div>
+    <h2 class="success-title">Thành công!</h2>
+    <p class="success-message" id="successMessageText">Thao tác thành công.</p>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // --- 1. LẤY MÀ CSRF TOKEN TỪ COOKIE ĐỂ BẢO MẬT ---
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    // --- 2. NHẬN DỮ LIỆU TỪ DJANGO ---
+    let employees = {{ employees_json|safe }};
+
+    // Các biến DOM
+    const tableBody = document.getElementById('employeeTableBody');
+    const searchInput = document.getElementById('searchInput');
+    const overlay = document.getElementById('modalOverlay');
+
+    const createModal = document.getElementById('createModal');
+    const viewModal = document.getElementById('viewModal');
+    const editModal = document.getElementById('editModal');
+    const deleteModal = document.getElementById('deleteModal');
+    const successModal = document.getElementById('successModal');
+    const successText = document.getElementById('successMessageText');
+
+    let employeeIdToDelete = null;
+
+    // --- 3. HIỂN THỊ BẢNG ---
+    function renderTable(data) {
+        tableBody.innerHTML = '';
+        if (data.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center;">Không tìm thấy nhân viên nào</td></tr>`;
+            return;
+        }
+        data.forEach(emp => {
+            const tr = `
+                <tr>
+                    <td>${emp.id}</td>
+                    <td>${emp.name}</td>
+                    <td>${emp.phone}</td>
+                    <td>${emp.username}</td>
+                    <td>********</td>
+                    <td class="actions">
+                        <button class="btn-icon" onclick="viewEmployee('${emp.id}')"><img src="{% static 'icon/9_iconconmat.png' %}" alt="View"></button>
+                        <button class="btn-icon" onclick="editEmployee('${emp.id}')"><img src="{% static 'icon/10_iconbutchi.png' %}" alt="Edit"></button>
+                        <button class="btn-icon" onclick="deleteEmployee('${emp.id}')"><img src="{% static 'icon/11_iconthungrac.png' %}" alt="Delete"></button>
+                    </td>
+                </tr>`;
+            tableBody.innerHTML += tr;
+        });
+    }
+
+    renderTable(employees);
+
+    // --- 4. TÌM KIẾM ---
+    searchInput.addEventListener('input', (e) => {
+        const kw = e.target.value.toLowerCase().trim();
+        renderTable(employees.filter(emp =>
+            emp.name.toLowerCase().includes(kw) ||
+            emp.id.toLowerCase().includes(kw)
+        ));
+    });
+
+    // --- 5. CÁC HÀM ĐÓNG MỞ MODAL CHUNG ---
+    function closeAllModals() {
+        overlay.style.display = 'none';
+        createModal.style.display = 'none';
+        viewModal.style.display = 'none';
+        editModal.style.display = 'none';
+        deleteModal.style.display = 'none';
+        successModal.style.display = 'none';
+        employeeIdToDelete = null;
+    }
+
+    function showSuccess(message) {
+        closeAllModals();
+        successText.textContent = message;
+        overlay.style.display = 'block';
+        successModal.style.display = 'block';
+        setTimeout(closeAllModals, 2000);
+    }
+
+    overlay.addEventListener('click', closeAllModals);
+
+    // --- 6. XEM NHÂN VIÊN ---
+    function viewEmployee(id) {
+        const emp = employees.find(x => x.id === id);
+        if (emp) {
+            document.getElementById('viewId').value = emp.id;
+            document.getElementById('viewName').value = emp.name;
+            document.getElementById('viewPhone').value = emp.phone;
+            document.getElementById('viewUsername').value = emp.username;
+            overlay.style.display = 'block';
+            viewModal.style.display = 'block';
+        }
+    }
+    document.getElementById('btnCloseView').addEventListener('click', closeAllModals);
+
+    // --- 7. THÊM NHÂN VIÊN ---
+    document.getElementById('btnOpenAddModal').addEventListener('click', () => {
+        document.getElementById('addName').value = '';
+        document.getElementById('addPhone').value = '';
+        document.getElementById('addUsername').value = '';
+        document.getElementById('addPassword').value = '';
+        overlay.style.display = 'block';
+        createModal.style.display = 'block';
+    });
+
+    document.getElementById('btnCancelAdd').addEventListener('click', closeAllModals);
+
+    // GỌI API LƯU TẠO MỚI
+    document.getElementById('btnSaveAdd').onclick = () => {
+        const name = document.getElementById('addName').value;
+        const phone = document.getElementById('addPhone').value;
+        const user = document.getElementById('addUsername').value;
+        const pass = document.getElementById('addPassword').value;
+
+        if (!name || !phone || !user || !pass) { alert("Vui lòng nhập đủ thông tin!"); return; }
+
+        let formData = new FormData();
+        formData.append('name', name);
+        formData.append('phone', phone);
+        formData.append('username', user);
+        formData.append('password', pass);
+
+        fetch('/quan-ly/nhan-vien/save/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrftoken },
+            body: formData
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'success') {
+                employees.unshift(data.employee); // Đưa nhân viên mới lên đầu bảng
+                renderTable(employees);
+                showSuccess("Tạo nhân viên mới thành công.");
+            } else {
+                alert("Lỗi: " + data.message);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    };
+
+    // --- 8. SỬA NHÂN VIÊN ---
+    function editEmployee(id) {
+        const emp = employees.find(x => x.id === id);
+        if (emp) {
+            document.getElementById('editId').value = emp.id;
+            document.getElementById('editName').value = emp.name;
+            document.getElementById('editPhone').value = emp.phone;
+            document.getElementById('editUsername').value = emp.username;
+            document.getElementById('editPassword').value = ''; // Để trống mật khẩu
+            overlay.style.display = 'block';
+            editModal.style.display = 'block';
+        }
+    }
+
+    document.getElementById('btnCancelEdit').addEventListener('click', closeAllModals);
+
+    // GỌI API LƯU CẬP NHẬT
+    document.getElementById('btnSaveEdit').onclick = () => {
+        const id = document.getElementById('editId').value;
+        const name = document.getElementById('editName').value;
+        const phone = document.getElementById('editPhone').value;
+        const user = document.getElementById('editUsername').value;
+        const pass = document.getElementById('editPassword').value;
+
+        if (!name || !phone || !user) { alert("Vui lòng nhập đủ thông tin bắt buộc!"); return; }
+
+        let formData = new FormData();
+        formData.append('id', id); // Có ID nghĩa là cập nhật
+        formData.append('name', name);
+        formData.append('phone', phone);
+        formData.append('username', user);
+        if (pass) formData.append('password', pass); // Chỉ gửi password nếu có nhập mới
+
+        fetch('/quan-ly/nhan-vien/save/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrftoken },
+            body: formData
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const index = employees.findIndex(e => e.id === id);
+                if (index !== -1) {
+                    employees[index] = data.employee;
+                    renderTable(employees);
+                }
+                showSuccess("Cập nhật thông tin thành công.");
+            } else {
+                alert("Lỗi: " + data.message);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    };
+
+    // --- 9. XÓA NHÂN VIÊN ---
+    function deleteEmployee(id) {
+        employeeIdToDelete = id;
+        overlay.style.display = 'block';
+        deleteModal.style.display = 'block';
+    }
+
+    document.getElementById('btnCancelDelete').addEventListener('click', closeAllModals);
+
+    // GỌI API XÓA
+    document.getElementById('btnConfirmDelete').onclick = () => {
+        if (employeeIdToDelete) {
+            fetch('/quan-ly/nhan-vien/delete/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id: employeeIdToDelete })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const index = employees.findIndex(e => e.id === employeeIdToDelete);
+                    if (index !== -1) {
+                        employees.splice(index, 1);
+                        renderTable(employees);
+                    }
+                    showSuccess("Đã xoá nhân viên thành công.");
+                } else {
+                    alert("Lỗi: " + data.message);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    };
+</script>
+{% endblock %}

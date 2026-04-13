@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.shortcuts import render,redirect
 
 # Create your views here.
@@ -12,6 +13,9 @@ from .serializers import (
     ServiceSerializer, EmployeeSerializer, PromotionSerializer,
     BookingSerializer, UserSerializer, BookingDetailSerializer
 )
+import json
+from django.shortcuts import render
+from django.core.serializers.json import DjangoJSONEncoder
 
 # --- QUẢN LÝ DỊCH VỤ (Tương ứng file quản lý dịch vụ_xoá.pdf) ---
 class ServiceViewSet(viewsets.ModelViewSet):
@@ -129,3 +133,173 @@ def QuanLyTaiKhoan_NV(request):
 def DangXuat(request):
     logout(request)
     return redirect('nv:DangNhap_QLNV')
+
+
+def quan_ly_dv_view(request):
+    # Thêm filter(is_active=True) để không hiện các dịch vụ đã xóa mềm
+    services_qs = Service.objects.filter(is_active=True).values(
+        'id', 'name', 'duration', 'price', 'description', 'image'
+    )
+
+    services_list = list(services_qs)
+    for service in services_list:
+        service['time'] = service.pop('duration')
+        if service['image']:
+            service['image'] = '/media/' + service['image']
+        else:
+            service['image'] = ""
+
+    services_json = json.dumps(services_list, cls=DjangoJSONEncoder)
+    return render(request, 'QuanLy/QuanLyDichVu.html', {'services_json': services_json})
+
+
+# 2. HÀM MỚI: Xử lý Thêm mới và Cập nhật (hỗ trợ cả file ảnh)
+def save_service_api(request):
+    if request.method == 'POST':
+        service_id = request.POST.get('id')
+        name = request.POST.get('name')
+        duration = request.POST.get('time')
+        price = request.POST.get('price')
+        description = request.POST.get('description')
+        image = request.FILES.get('image')  # Lấy file ảnh nếu có
+
+        if service_id:
+            # Nếu có ID gửi lên -> CẬP NHẬT
+            service = Service.objects.get(id=service_id)
+            service.name = name
+            service.duration = duration
+            service.price = price
+            service.description = description
+            if image:
+                service.image = image  # Chỉ cập nhật ảnh nếu user chọn ảnh mới
+            service.save()
+        else:
+            # Nếu không có ID -> THÊM MỚI
+            service = Service.objects.create(
+                name=name,
+                duration=duration,
+                price=price,
+                description=description,
+                image=image
+            )
+
+        # Trả về dữ liệu vừa lưu thành công
+        img_url = service.image.url if service.image else ""
+        return JsonResponse({
+            'status': 'success',
+            'service': {
+                'id': service.id,
+                'name': service.name,
+                'time': service.duration,
+                'price': float(service.price),
+                'description': service.description,
+                'image': img_url
+            }
+        })
+    return JsonResponse({'status': 'error'}, status=400)
+
+
+# 3. HÀM MỚI: Xử lý Xóa mềm
+def delete_service_api(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        service_id = data.get('id')
+
+        # Tìm dịch vụ và chuyển is_active thành False
+        service = Service.objects.get(id=service_id)
+        service.is_active = False
+        service.save()
+
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'}, status=400)
+
+
+def quan_ly_nv_view(request):
+
+    employees_qs = Employee.objects.select_related('user').filter(user__is_active=True)
+
+    employees_list = []
+    for emp in employees_qs:
+        employees_list.append({
+            'id': emp.employee_code,
+            'name': emp.user.full_name or "",
+            'phone': emp.user.phone_number or "",
+            'username': emp.user.username,
+            # Ta không gửi password thật xuống frontend
+        })
+
+    employees_json = json.dumps(employees_list)
+    return render(request, 'QuanLy/QuanLyNhanVien.html', {'employees_json': employees_json})
+
+
+def save_employee_api(request):
+    if request.method == 'POST':
+        emp_code = request.POST.get('id')
+        full_name = request.POST.get('name')
+        phone = request.POST.get('phone')
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        try:
+            with transaction.atomic():
+                if emp_code:
+                    # CẬP NHẬT
+                    emp = Employee.objects.get(employee_code=emp_code)
+                    user = emp.user
+                    user.full_name = full_name
+                    user.phone_number = phone
+                    user.username = username
+                    if password:  # Quản lý cấp lại mật khẩu mới
+                        user.set_password(password)
+                    user.save()
+                else:
+                    # TẠO MỚI
+                    user = User.objects.create_user(
+                        username=username,
+                        password=password,
+                        full_name=full_name,
+                        phone_number=phone,
+                        role='STAFF'
+                    )
+
+                    # SỬA LỖI Ở ĐÂY: Dùng zfill(3) thay vì padStart(3, '0')
+                    last_emp = Employee.objects.order_by('-id').first()
+                    new_num = (last_emp.id + 1) if last_emp else 1
+                    new_code = f"NV{str(new_num).zfill(3)}"
+
+                    emp = Employee.objects.create(
+                        user=user,
+                        employee_code=new_code
+                    )
+
+                return JsonResponse({
+                    'status': 'success',
+                    'employee': {
+                        'id': emp.employee_code,
+                        'name': user.full_name,
+                        'phone': user.phone_number,
+                        'username': user.username
+                    }
+                })
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+    return JsonResponse({'status': 'error'}, status=400)
+
+
+def delete_employee_api(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        emp_code = data.get('id')
+
+        try:
+            emp = Employee.objects.get(employee_code=emp_code)
+            user = emp.user
+            # Xóa mềm bằng cách set is_active = False
+            user.is_active = False
+            user.save()
+            return JsonResponse({'status': 'success'})
+        except Employee.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Không tìm thấy nhân viên'}, status=404)
+
+    return JsonResponse({'status': 'error'}, status=400)

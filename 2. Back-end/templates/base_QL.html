@@ -179,6 +179,7 @@
             padding: 30px;
         }
     </style>
+    {% block extra_css %}{% endblock %}
 </head>
 
 <body>
@@ -268,7 +269,12 @@
                 <div class="user-info">
                     <div class="user-details">
                         <span class="user-role">Quản lý hệ thống</span>
-                        <span class="user-name">Thu Thuý</span>
+
+                        {% if request.user.is_authenticated %}
+                            <span class="user-name">{{ request.user.last_name }} {{ request.user.first_name }}</span>
+                        {% else %}
+                            <span class="user-name">Khách (Chưa đăng nhập)</span>
+                        {% endif %}
                     </div>
 
                     <div class="avatar">T</div>
@@ -295,14 +301,14 @@
         window.location.href = "/dang-nhap";
     }
 
-    // Active menu
-    const path = window.location.pathname;
+const path = window.location.pathname;
     document.querySelectorAll(".menu-item").forEach(item => {
-        if (item.getAttribute("data-path") === path) {
+        let dataPath = item.getAttribute("data-path");
+        if (path === dataPath || path === dataPath + "/") {
             item.classList.add("active");
         }
     });
 </script>
-
+    {% block extra_js %}{% endblock %}
 </body>
 </html>
