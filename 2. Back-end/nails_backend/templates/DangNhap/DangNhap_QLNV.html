@@ -1,0 +1,234 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng Nhập - 2000 Nails & Eyelash</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arimo', sans-serif; }
+
+        body.login-page {
+            background: linear-gradient(135deg, #8B7167, #C5A99E);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-card {
+            background: white;
+            padding: 40px 50px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .login-title {
+            color: #8B7167;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: #8B7167;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            margin: 25px 0;
+        }
+
+        .radio-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .checkmark {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #8B7167;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        input[type="radio"]:checked + .checkmark::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 10px; height: 10px;
+            background: #8B7167;
+            border-radius: 50%;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 15px;
+            background: #8B7167;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .btn-login:hover { background: #7A5F52; }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(245, 240, 237, 0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .success-modal {
+            background: white;
+            padding: 40px 50px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            max-width: 380px;
+        }
+
+        .success-icon svg {
+            width: 80px;
+            height: 80px;
+            fill: #8B7167;
+        }
+
+        .success-title {
+            color: #8B7167;
+            font-size: 26px;
+            margin: 15px 0 8px;
+        }
+
+        .success-message {
+            color: #666;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body class="login-page">
+
+    <div class="login-card">
+        <h1 class="login-title">ĐĂNG NHẬP</h1>
+
+        <form id="loginForm">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Tên đăng nhập</label>
+                <input type="text" id="username" name="username" placeholder="Nhập tên đăng nhập" required>
+            </div>
+
+            <div class="form-group">
+                <label>Mật khẩu</label>
+                <input type="password" id="password" name="password" placeholder="Nhập mật khẩu" required>
+            </div>
+
+            <div class="radio-group">
+                <label class="radio-container">
+                    <input type="radio" name="role" value="quanly">
+                    <span class="checkmark"></span>
+                    Quản lý
+                </label>
+                <label class="radio-container">
+                    <input type="radio" name="role" value="nhanvien" checked>
+                    <span class="checkmark"></span>
+                    Nhân viên
+                </label>
+            </div>
+
+            <button type="submit" class="btn-login">ĐĂNG NHẬP</button>
+        </form>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal-overlay" id="successModal">
+        <div class="success-modal">
+            <div class="success-icon">
+                <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+            </div>
+            <h2 class="success-title">Đăng nhập thành công!</h2>
+            <p class="success-message" id="successMessageText">Đang chuyển hướng...</p>
+        </div>
+    </div>
+
+    <script>
+        const loginForm = document.getElementById('loginForm');
+        const successModal = document.getElementById('successModal');
+        const successMessageText = document.getElementById('successMessageText');
+
+        loginForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(loginForm);
+
+            try {
+                const response = await fetch("{% url 'nv:DangNhap_QLNV' %}", {   // ← ĐÃ SỬA Ở ĐÂY
+                    method: "POST",
+                    body: formData,
+                    headers: {
+                        "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    successModal.style.display = 'flex';
+                    successMessageText.textContent = result.message || 'Đang chuyển hướng...';
+
+                    setTimeout(() => {
+                        window.location.href = result.redirect_url;
+                    }, 1200);
+                } else {
+                    alert(result.message || "Đăng nhập thất bại!");
+                }
+            } catch (error) {
+                alert("Có lỗi xảy ra, vui lòng thử lại!");
+            }
+        });
+    </script>
+</body>
+</html>
