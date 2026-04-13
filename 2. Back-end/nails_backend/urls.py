@@ -2,39 +2,40 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views
 from .views import (
-    ServiceViewSet, EmployeeViewSet, BookingViewSet, UserProfileView
+    ServiceViewSet,
+    EmployeeViewSet,
+    BookingViewSet,
+    UserProfileView
 )
 
-# Khởi tạo router để tự động tạo các đường dẫn API
 router = DefaultRouter()
+router.register(r'services', ServiceViewSet, basename='service')
+router.register(r'employees', EmployeeViewSet, basename='employee')
+router.register(r'bookings', BookingViewSet, basename='booking')
 
-# 1. Đăng ký các ViewSet (Cho phép các thao tác GET, POST, PUT, DELETE)
-router.register(r'services', ServiceViewSet, basename='service')    # /api/services/
-router.register(r'employees', EmployeeViewSet, basename='employee')  # /api/employees/
-router.register(r'bookings', BookingViewSet, basename='booking')    # /api/bookings/
-# router.register(r'promotions', PromotionViewSet, basename='promotion') # /api/promotions/
-app_name = 'nv'
+app_name = 'nails_backend'
+
 urlpatterns = [
-    path('', views.DangNhap_QLNV, name='DangNhap_QLNV'),
-    # Kết nối toàn bộ các đường dẫn từ router
-    path('api/', include((router.urls, 'api'))),
-
-    # 2. Đường dẫn riêng cho hồ sơ cá nhân (Tương ứng file quản lý tài khoản.pdf)
-    # Vì UserProfileView là generics.RetrieveUpdateAPIView (không phải ViewSet) nên khai báo riêng
+    # API
+    path('api/', include(router.urls)),
     path('profile/', UserProfileView.as_view(), name='user-profile'),
 
-    # Trang chủ nhân viên
+    # ==================== KHÁCH HÀNG ====================
+    path('TrangChu_KH/', views.TrangChu_KH, name='TrangChu_KH'),
+    path('TrangChu_KH_AfterLogin/', views.TrangChu_KH_AfterLogin, name='TrangChu_KH_AfterLogin'),
+
+    path('DangNhap_KH/', views.DangNhap_KH, name='DangNhap_KH'),
+    path('DangXuat_KH/', views.DangXuat_KH, name='DangXuat_KH'),  # Tách riêng
+
+    path('DatLichHen/', views.DatLichHen, name='DatLichHen'),
+    path('LichHenCuaToi/', views.LichHenCuaToi, name='LichHenCuaToi'),
+    path('QuanLyTaiKhoan_KH/', views.QuanLyTaiKhoan_KH, name='QuanLyTaiKhoan_KH'),
+
+    # ==================== NHÂN VIÊN & QUẢN LÝ ====================
+    path('', views.DangNhap_QLNV, name='DangNhap_QLNV'),
     path('TrangChu_NV/', views.TrangChu_NV, name='TrangChu_NV'),
-
-    # Quản lý ca làm cá nhân (bạn sẽ tạo sau)
+    path('TrangChu_QL/', views.TrangChu_QL, name='TrangChu_QL'),
+    path('DangXuat_QLNV/', views.DangXuat_QLNV, name='DangXuat_QLNV'),  # Tách riêng
     path('QuanLyCaLam_NV/', views.QuanLyCaLam_NV, name='QuanLyCaLam_NV'),
-
-    # Quản lý tài khoản cá nhân (bạn sẽ tạo sau)
     path('QuanLyTaiKhoan_NV/', views.QuanLyTaiKhoan_NV, name='QuanLyTaiKhoan_NV'),
-
-    # Đăng nhập chung (QL + NV)
-    path('DangNhap_QLNV/', views.DangNhap_QLNV, name='DangNhap_QLNV'),
-
-    # Đăng xuất
-    path('DangXuat/', views.DangXuat, name='DangXuat'),
 ]

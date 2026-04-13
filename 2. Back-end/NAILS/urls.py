@@ -18,5 +18,5 @@ from django.contrib import admin
 from django.urls import include, path
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('nails_backend.urls')),
+    path('', include('nails_backend.urls',namespace='nails_backend')),
 ]
