@@ -1,0 +1,347 @@
+{% extends 'base_NV.html' %}
+{% load static %}
+
+
+{% block title %}Quản lý tài khoản cá nhân | 2000 Nails & Eyelash{% endblock %}
+
+
+{% block page_title %}Quản lý tài khoản cá nhân{% endblock %}
+
+
+{% block content %}
+<style>
+   /* Style đặc thù cho trang Quản lý tài khoản */
+   .account-container { display: grid; grid-template-columns: 1fr 350px; gap: 30px; }
+   .card { background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow: hidden; }
+   .card-header { background: #FAF7F5; padding: 15px 25px; font-weight: 700; color: #8B7167; border-bottom: 1px solid #EEE; }
+   .card-body { padding: 25px; }
+
+
+   .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+   .full-width { grid-column: span 2; }
+   .form-group { margin-bottom: 15px; }
+   .form-group label { display: block; font-size: 14px; font-weight: 600; color: #666; margin-bottom: 8px; }
+   .form-group input, .form-group select { width: 100%; padding: 10px 15px; border: 1px solid #DDD; border-radius: 6px; outline: none; transition: border 0.2s; font-size: 15px; color: #333; }
+   .form-group input[readonly] { background-color: #fcfcfc; color: #777; cursor: default; }
+   .form-group input:focus:not([readonly]) { border-color: #8B7167; }
+   .asterisk { color: red; }
+
+
+   .btn-action { background-color: #8B7167; color: white; border: none; padding: 12px 25px; border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%; transition: 0.2s; margin-top: 10px; }
+   .btn-action:hover { background-color: #765f56; }
+
+
+   /* Modal Styles */
+   .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 2000; }
+   .modal-container { background: white; border-radius: 15px; width: 90%; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+   .modal-header { padding: 20px 25px; background: #8B7167; color: white; font-weight: 700; font-size: 18px; }
+   .modal-body { padding: 25px; }
+   .modal-actions { display: flex; justify-content: flex-end; gap: 15px; margin-top: 20px; }
+   .modal-actions.center { justify-content: center; }
+
+
+   .btn-save { background: #8B7167; color: white; border: none; padding: 10px 30px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+   .btn-save:hover { background: #765f56; }
+   .btn-cancel { background: #EEE; color: #666; border: none; padding: 10px 30px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+
+
+   /* Success Modal */
+   .success-modal { background: white; padding: 40px; border-radius: 20px; text-align: center; max-width: 350px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+   .success-icon { width: 60px; height: 60px; background: #E8F5E9; color: #4CAF50; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+   .success-icon svg { width: 35px; height: 35px; fill: currentColor; }
+</style>
+
+
+<div class="account-container">
+   {% if user.is_authenticated and employee %}
+   <div class="card info-card">
+       <div class="card-header">Thông tin chi tiết</div>
+       <div class="card-body">
+           <div class="form-grid">
+               <div class="form-group">
+                   <label>Họ và tên</label>
+                   <input type="text" value="{{ user.full_name|default:user.username }}" readonly>
+               </div>
+               <div class="form-group">
+                   <label>Giới tính</label>
+                   <input type="text" value="{% if employee.gender == 'F' %}Nữ{% elif employee.gender == 'M' %}Nam{% else %}{{ employee.gender }}{% endif %}" readonly>
+               </div>
+               <div class="form-group">
+                   <label>Mã nhân viên</label>
+                   <input type="text" value="{{ employee.employee_code }}" readonly>
+               </div>
+               <div class="form-group">
+                   <label>Email</label>
+                   <input type="email" value="{{ user.email }}" readonly>
+               </div>
+               <div class="form-group">
+                   <label>Số điện thoại</label>
+                   <input type="text" value="{{ user.phone_number|default:'Chưa cập nhật' }}" readonly>
+               </div>
+               <div class="form-group">
+                   <label>Giờ làm việc</label>
+                   <input type="text" value="{{ employee.start_working_hour|time:'H:i' }} - {{ employee.end_working_hour|time:'H:i' }}" readonly>
+               </div>
+           </div>
+           <button class="btn-action" id="btnOpenUpdateModal">Cập nhật thông tin</button>
+       </div>
+   </div>
+
+
+   <div class="card security-card">
+       <div class="card-header">Bảo mật</div>
+       <div class="card-body">
+           <div class="form-group">
+               <label>Tên tài khoản (Username)</label>
+               <input type="text" value="{{ user.username }}" readonly>
+           </div>
+           <div class="form-group">
+               <label>Mật khẩu</label>
+               <input type="password" value="********" readonly>
+           </div>
+           <button class="btn-action" id="btnOpenPasswordModal">Đổi mật khẩu</button>
+       </div>
+   </div>
+   {% else %}
+   <div style="grid-column: span 2; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 400px;">
+       <h3 style="color: #777; font-size: 20px; font-weight: 600;">Vui lòng đăng nhập</h3>
+       {% if not user.is_authenticated %}
+       <a href="{% url 'nails_backend:DangNhap_QLNV' %}" style="text-decoration: none; margin-top: 15px;">
+           <button style="padding: 8px 20px; background: #8B7167; color: white; border: none; border-radius: 6px; cursor: pointer;">Đi tới Đăng nhập</button>
+       </a>
+       {% endif %}
+   </div>
+   {% endif %}
+</div>
+
+
+{% if employee %}
+<div class="modal-overlay" id="updateModal">
+   <div class="modal-container" style="max-width: 650px;">
+       <div class="modal-header">Cập nhật thông tin</div>
+       <div class="modal-body">
+           <form id="formUpdateInfo">
+               <div class="form-grid">
+                   <div class="form-group">
+                       <label>Họ và tên <span class="asterisk">*</span></label>
+                       <input type="text" name="full_name" value="{{ user.full_name|default:'' }}">
+                   </div>
+                   <div class="form-group">
+                       <label>Giới tính</label>
+                       <select name="gender">
+                           <option value="F" {% if employee.gender == 'F' %}selected{% endif %}>Nữ</option>
+                           <option value="M" {% if employee.gender == 'M' %}selected{% endif %}>Nam</option>
+                       </select>
+                   </div>
+                   <div class="form-group">
+                       <label>Email <span class="asterisk">*</span></label>
+                       <input type="email" name="email" value="{{ user.email }}">
+                   </div>
+                   <div class="form-group">
+                       <label>Số điện thoại <span class="asterisk">*</span></label>
+                       <input type="text" name="phone" value="{{ user.phone_number|default:'' }}">
+                   </div>
+               </div>
+               <div class="modal-actions">
+                   <button type="button" class="btn-cancel" id="btnCancelUpdate">Huỷ</button>
+                   <button type="button" class="btn-save" id="btnSaveUpdate">Lưu thay đổi</button>
+               </div>
+           </form>
+       </div>
+   </div>
+</div>
+
+
+<div class="modal-overlay" id="passwordModal">
+   <div class="modal-container" style="max-width: 450px;">
+       <div class="modal-header">Đổi mật khẩu</div>
+       <div class="modal-body">
+           <form id="formChangePassword">
+               <div class="form-group">
+                   <label>Mật khẩu hiện tại <span class="asterisk">*</span></label>
+                   <input type="password" name="old_password">
+               </div>
+               <div class="form-group">
+                   <label>Mật khẩu mới <span class="asterisk">*</span></label>
+                   <input type="password" name="new_password">
+               </div>
+               <div class="modal-actions center">
+                   <button type="button" class="btn-cancel" id="btnCancelPassword">Huỷ</button>
+                   <button type="button" class="btn-save" id="btnSavePassword">Đổi mật khẩu</button>
+               </div>
+           </form>
+       </div>
+   </div>
+</div>
+{% endif %}
+
+
+<div class="modal-overlay" id="successModal">
+   <div class="success-modal">
+       <div class="success-icon">
+           <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+       </div>
+       <h2 id="successMessageText" style="color: #8B7167; font-size: 22px;">Thành công!</h2>
+   </div>
+</div>
+
+
+<script>
+   const updateModal = document.getElementById('updateModal');
+   const passwordModal = document.getElementById('passwordModal');
+   const successModal = document.getElementById('successModal');
+
+
+   // Mở/Đóng Modal Cập nhật
+   const btnOpenUpdate = document.getElementById('btnOpenUpdateModal');
+   if(btnOpenUpdate) btnOpenUpdate.onclick = () => updateModal.style.display = 'flex';
+
+
+   const btnCancelUpdate = document.getElementById('btnCancelUpdate');
+   if(btnCancelUpdate) btnCancelUpdate.onclick = () => updateModal.style.display = 'none';
+
+
+   // Mở/Đóng Modal Đổi mật khẩu
+   const btnOpenPassword = document.getElementById('btnOpenPasswordModal');
+   if(btnOpenPassword) btnOpenPassword.onclick = () => passwordModal.style.display = 'flex';
+
+
+   const btnCancelPassword = document.getElementById('btnCancelPassword');
+   if(btnCancelPassword) btnCancelPassword.onclick = () => passwordModal.style.display = 'none';
+
+
+   // Hàm hiển thị thông báo thành công và reload trang
+   function showSuccess(msg) {
+       document.getElementById('successMessageText').innerText = msg;
+       successModal.style.display = 'flex';
+       // Tải lại trang sau 1.5 giây để thấy dữ liệu mới
+       setTimeout(() => {
+           window.location.reload();
+       }, 1500);
+   }
+
+
+   // Lấy Token bảo mật của Django (CSRF)
+   function getCookie(name) {
+       let cookieValue = null;
+       if (document.cookie && document.cookie !== '') {
+           const cookies = document.cookie.split(';');
+           for (let i = 0; i < cookies.length; i++) {
+               const cookie = cookies[i].trim();
+               if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                   cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                   break;
+               }
+           }
+       }
+       return cookieValue;
+   }
+   const csrftoken = getCookie('csrftoken');
+
+
+   // --------------------------------------------------------
+   // XỬ LÝ LƯU THÔNG TIN CÁ NHÂN (AJAX)
+   // --------------------------------------------------------
+   const btnSaveUpdate = document.getElementById('btnSaveUpdate');
+   if(btnSaveUpdate){
+       btnSaveUpdate.onclick = async () => {
+           // Lấy dữ liệu từ form
+           const form = document.getElementById('formUpdateInfo');
+           const data = {
+               full_name: form.elements['full_name'].value,
+               gender: form.elements['gender'].value,
+               email: form.elements['email'].value,
+               phone: form.elements['phone'].value
+           };
+
+
+           try {
+               // Gọi API backend
+               const response = await fetch("{% url 'nails_backend:api_cap_nhat_thong_tin' %}", {
+                   method: "POST",
+                   headers: {
+                       "Content-Type": "application/json",
+                       "X-CSRFToken": csrftoken
+                   },
+                   body: JSON.stringify(data)
+               });
+
+
+               const result = await response.json();
+
+
+               if (result.success) {
+                   updateModal.style.display = 'none';
+                   showSuccess(result.message);
+               } else {
+                   alert("Lỗi: " + result.message);
+               }
+           } catch (error) {
+               alert("Có lỗi xảy ra khi kết nối máy chủ!");
+           }
+       };
+   }
+
+
+   // --------------------------------------------------------
+   // XỬ LÝ ĐỔI MẬT KHẨU (AJAX)
+   // --------------------------------------------------------
+   const btnSavePassword = document.getElementById('btnSavePassword');
+   if(btnSavePassword){
+       btnSavePassword.onclick = async () => {
+           const form = document.getElementById('formChangePassword');
+           const oldPassword = form.elements['old_password'].value;
+           const newPassword = form.elements['new_password'].value;
+
+
+           if(!oldPassword || !newPassword) {
+               alert("Vui lòng nhập đầy đủ mật khẩu cũ và mới!");
+               return;
+           }
+
+
+           if(newPassword.length < 6) {
+               alert("Mật khẩu mới phải có ít nhất 6 ký tự!");
+               return;
+           }
+
+
+           try {
+               const response = await fetch("{% url 'nails_backend:api_doi_mat_khau' %}", {
+                   method: "POST",
+                   headers: {
+                       "Content-Type": "application/json",
+                       "X-CSRFToken": csrftoken
+                   },
+                   body: JSON.stringify({
+                       old_password: oldPassword,
+                       new_password: newPassword
+                   })
+               });
+
+
+               const result = await response.json();
+
+
+               if (result.success) {
+                   passwordModal.style.display = 'none';
+                   // Reset form sau khi đổi thành công
+                   form.reset();
+                   showSuccess(result.message);
+               } else {
+                   alert(result.message); // Báo lỗi (ví dụ: Sai mật khẩu cũ)
+               }
+           } catch (error) {
+               alert("Có lỗi xảy ra khi kết nối máy chủ!");
+           }
+       };
+   }
+
+
+   // Đóng modal khi click ra ngoài vùng trắng
+   window.onclick = (event) => {
+       if (event.target == updateModal) updateModal.style.display = "none";
+       if (event.target == passwordModal) passwordModal.style.display = "none";
+   }
+</script>
+{% endblock %}

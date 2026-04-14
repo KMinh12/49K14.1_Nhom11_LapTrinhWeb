@@ -1,0 +1,598 @@
+{% load static %}
+
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>2000 Nails Eyelash</title>
+ <script src="https://cdn.tailwindcss.com"></script>
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+ <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Arimo:wght@700&display=swap" rel="stylesheet">
+
+
+ <style>
+   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Roboto:wght@400;500;700&display=swap');
+
+
+   body { font-family: 'Arimo', sans-serif; }
+   .title-font { font-family: 'Playfair Display', sans-serif; }
+
+
+   .hero-bg {
+     background-image: linear-gradient(rgba(0,0,0,0.15), rgba(0,0,0,0.25)),
+                       url('{% static "images/nangniuvedep.jpg" %}');
+     background-size: cover;
+     background-position: center;
+     background-attachment: fixed;
+   }
+
+
+   .logo-img {
+     border-radius: 9999px;
+     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+     transition: all 0.3s ease;
+   }
+   .logo-img:hover { transform: scale(1.08); }
+
+
+   .blur-effect {
+     filter: blur(8px);
+     pointer-events: none;
+     transition: filter 0.3s ease;
+   }
+ </style>
+</head>
+<body class="bg-gray-50 relative overflow-x-hidden">
+
+
+ <!-- Modal Đăng ký -->
+ <div id="registerModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
+   <div class="absolute inset-0 bg-black/40 backdrop-blur-[2px]" onclick="closeAllModals()"></div>
+   <div class="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl p-8 md:p-10 relative z-10">
+     <button onclick="closeAllModals()" class="absolute top-6 right-8 text-gray-400 hover:text-gray-900 text-3xl">&times;</button>
+     <h2 class="text-3xl font-bold text-center text-gray-800 mb-8 uppercase tracking-widest">Đăng ký</h2>
+
+
+     <form id="registerForm" class="space-y-4">
+       <div>
+         <label class="block font-medium mb-1 ml-1 text-sm">Họ và tên</label>
+         <input type="text" id="reg_fullname" placeholder="Nhập họ và tên"
+                class="w-full px-6 py-3 border border-gray-200 rounded-full focus:ring-2 focus:ring-[#C4A484] outline-none" required>
+       </div>
+       <div>
+         <label class="block font-medium mb-1 ml-1 text-sm">Số điện thoại</label>
+         <input type="text" id="reg_phone" placeholder="Nhập số điện thoại"
+                class="w-full px-6 py-3 border border-gray-200 rounded-full focus:ring-2 focus:ring-[#C4A484] outline-none" required>
+       </div>
+       <div>
+         <label class="block font-medium mb-1 ml-1 text-sm">Email</label>
+         <input type="email" id="reg_email" placeholder="Nhập email"
+                class="w-full px-6 py-3 border border-gray-200 rounded-full focus:ring-2 focus:ring-[#C4A484] outline-none">
+       </div>
+       <div>
+         <label class="block font-medium mb-1 ml-1 text-sm">Tên đăng nhập</label>
+         <input type="text" id="reg_username" placeholder="Nhập tên đăng nhập"
+                class="w-full px-6 py-3 border border-gray-200 rounded-full focus:ring-2 focus:ring-[#C4A484] outline-none" required>
+       </div>
+       <div>
+         <label class="block font-medium mb-1 ml-1 text-sm">Mật khẩu</label>
+         <input type="password" id="reg_password" placeholder="Nhập mật khẩu"
+                class="w-full px-6 py-3 border border-gray-200 rounded-full focus:ring-2 focus:ring-[#C4A484] outline-none" required>
+       </div>
+
+
+       <button type="submit"
+               class="w-full py-4 bg-[#BFA19A] hover:bg-[#B69688] text-white font-bold rounded-full mt-4 transition shadow-lg uppercase tracking-widest">
+         Đăng ký
+       </button>
+     </form>
+
+
+     <div class="text-center mt-6">
+       <p class="text-sm">Đã có tài khoản?
+         <a href="javascript:void(0)" onclick="openLogin()" class="text-[#BFA19A] font-bold hover:underline">Đăng nhập ngay</a>
+       </p>
+     </div>
+   </div>
+ </div>
+
+
+ <!-- Modal Đăng nhập -->
+ <div id="loginModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
+   <div class="absolute inset-0 bg-black/40 backdrop-blur-[2px]" onclick="closeAllModals()"></div>
+   <div class="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl p-8 md:p-10 relative z-10">
+     <button onclick="closeAllModals()" class="absolute top-6 right-8 text-gray-400 hover:text-gray-900 text-3xl">&times;</button>
+     <h2 class="text-3xl font-bold text-center mb-8 uppercase tracking-widest">Đăng nhập</h2>
+
+
+     <form id="loginForm" class="space-y-6">
+       <div>
+         <label class="block font-medium mb-1 ml-1 text-sm">Tên đăng nhập</label>
+         <input type="text" id="login_username" placeholder="Nhập tên đăng nhập"
+                class="w-full px-6 py-4 border border-gray-200 rounded-full focus:ring-2 focus:ring-[#C4A484] outline-none" required>
+       </div>
+       <div>
+         <label class="block font-medium mb-1 ml-1 text-sm">Mật khẩu</label>
+         <input type="password" id="login_password" placeholder="Nhập mật khẩu"
+                class="w-full px-6 py-4 border border-gray-200 rounded-full focus:ring-2 focus:ring-[#C4A484] outline-none" required>
+       </div>
+       <button type="submit"
+               class="w-full py-4 bg-[#BFA19A] hover:bg-[#B69688] text-white font-bold rounded-full transition shadow-lg uppercase tracking-widest">
+         Đăng nhập
+       </button>
+     </form>
+
+
+     <div class="text-center mt-6">
+       <p class="text-sm">Chưa có tài khoản?
+         <a href="javascript:void(0)" onclick="openRegister()" class="text-[#BFA19A] font-bold hover:underline">Đăng ký ngay</a>
+       </p>
+     </div>
+   </div>
+ </div>
+
+
+ <div id="mainContent">
+
+
+   <!-- Nav -->
+   <nav class="bg-[#8B7167] text-white h-[84px] flex items-center">
+     <div class="max-w-7xl mx-auto px-6 w-full">
+       <div class="flex items-center justify-between">
+         <div class="flex items-center gap-3">
+           <img src="{% static 'logo/logo.jpg' %}" alt="Logo" class="logo-img h-14 w-14 object-cover border-2 border-white/40">
+           <div class="leading-none" style="font-family: 'Poppins', sans-serif; font-size: 28px;">
+             <span class="font-bold tracking-tighter" style="font-size: 14px;">2000</span><br>
+             <span class="text-xs font-bold tracking-widest uppercase" style="font-size: 12px;">Nails Eyelash</span>
+           </div>
+         </div>
+
+
+         <div class="hidden md:flex items-center gap-8 text-sm font-bold" style="font-family: 'Arimo', sans-serif;">
+           <a href="{% url 'nails_backend:TrangChu_KH' %}" class="hover:text-amber-200 transition">Trang chủ</a>
+           <a href="#" class="hover:text-amber-200 transition">Dịch vụ</a>
+           <a href="#" class="hover:text-amber-200 transition">Khuyến mãi</a>
+           <a href="#" class="hover:text-amber-200 transition">Về chúng tôi</a>
+           <a href="#" class="hover:text-amber-200 transition">Liên hệ</a>
+         </div>
+
+
+         <div class="flex flex-col gap-1.5">
+           <button onclick="openRegister()"
+                   class="w-[125px] py-2 text-xs font-bold rounded-[10px] bg-white border hover:brightness-110 transition shadow-sm"
+                   style="color: #BFA19A; border-color: #BFA19A;">
+               Đăng ký
+           </button>
+           <button onclick="openLogin()"
+                   class="w-[125px] py-2 text-xs font-bold text-white bg-[#BFA19A] border border-white rounded-[10px] hover:brightness-110 transition shadow-sm">
+               Đăng nhập
+           </button>
+         </div>
+       </div>
+     </div>
+   </nav>
+
+
+   <!-- Hero Section -->
+   <section class="hero-bg h-screen flex items-center relative overflow-hidden">
+     <div class="max-w-5xl mx-auto px-6 relative z-10 w-full">
+       <div class="max-w-4xl mx-auto text-center flex flex-col items-center">
+         <h1 class="text-6xl md:text-7xl leading-none font-bold mb-6 title-font"
+             style="color: #000000; -webkit-text-stroke: 1px #8B5E3C;">
+           Nâng Niu Vẻ Đẹp Của Bạn
+         </h1>
+
+
+         <p class="text-xl md:text-2xl font-bold mb-10 leading-relaxed"
+            style="font-family: 'Playfair Display', serif; color: #000000;">
+           Trải nghiệm dịch vụ làm đẹp đẳng cấp với không gian thư giãn<br class="hidden md:block">
+           tuyệt đối với đội ngũ chuyên nghiệp.
+         </p>
+
+
+         <button onclick="openLogin()"
+           class="px-12 py-5 transition-all duration-300 shadow-xl hover:scale-105 active:scale-95"
+           style="background-color: #BFA19A; color: #FFFFFF; font-weight: 600; border: 2px solid #FFFFFF; border-radius: 9999px; font-size: 24px;">
+           Đặt lịch ngay
+         </button>
+       </div>
+     </div>
+
+
+     <div class="absolute inset-0 bg-gradient-to-r from-white via-white/85 to-transparent"></div>
+   </section>
+    <!-- Dịch vụ nổi bật -->
+ <section class="py-16 bg-[#F5F0ED]">
+   <div class="max-w-4xl mx-auto px-6">
+     <div class="text-center mb-12">
+       <h2 class="text-4xl font-bold" style="color: #000000;">Dịch Vụ Nổi Bật</h2>
+       <p style="color: #000000;">Chăm sóc toàn diện từ móng tay đến thư giãn cơ thể</p>
+     </div>
+
+
+     <div class="space-y-10">
+
+
+       <div class="bg-white rounded-[2rem] p-10 text-center shadow-sm hover:shadow-2xl transition-all duration-500">
+         <div class="w-44 h-44 mx-auto mb-8 rounded-full overflow-hidden shadow-md">
+           <img src="{% static 'images/lamnailnghethuat.jpg' %}" alt="Làm Nail Nghệ Thuật" class="w-full h-full object-cover">
+         </div>
+         <h3 class="text-2xl font-bold mb-4" style="color: #432525;">Làm Nail Nghệ Thuật</h3>
+         <p class="leading-relaxed px-4 text-base font-medium" style="color: #000000;">
+           Thiết kế móng chuyên nghiệp, cập nhật xu hướng mới nhất với sơn Gel cao cấp
+         </p>
+         <p class="font-bold text-2xl mt-8" style="color: #8b7167;">Từ 150.000đ</p>
+       </div>
+
+
+       <div class="bg-white rounded-[2rem] p-10 text-center shadow-sm hover:shadow-2xl transition-all duration-500">
+         <div class="w-44 h-44 mx-auto mb-8 rounded-full overflow-hidden shadow-md">
+           <img src="{% static 'images/lamminghethuat.jpg' %}" alt="Làm Mi Nghệ Thuật" class="w-full h-full object-cover">
+         </div>
+         <h3 class="text-2xl font-bold mb-4" style="color: #432525;">Làm Mi Nghệ Thuật</h3>
+         <p class="leading-relaxed px-4 text-base font-medium" style="color: #000000;">
+           Thiết kế mi chuyên nghiệp phù hợp với từng khuôn mặt
+         </p>
+         <p class="font-bold text-2xl mt-8" style="color: #8B7167;">Từ 250.000đ</p>
+       </div>
+
+
+       <div class="bg-white rounded-[2rem] p-10 text-center shadow-sm hover:shadow-2xl transition-all duration-500">
+         <div class="w-44 h-44 mx-auto mb-8 rounded-full overflow-hidden shadow-md">
+           <img src="{% static 'images/goidauduongsinh.jpg' %}" alt="Gội Đầu Dưỡng Sinh" class="w-full h-full object-cover">
+         </div>
+         <h3 class="text-2xl font-semibold mb-3" style="color: #432525;">Gội Đầu Dưỡng Sinh</h3>
+         <p class="text-gray-600 leading-relaxed px-6">
+           Liệu trình gội đầu thảo dược kết hợp massage cổ vai gáy giảm stress
+         </p>
+         <p class="text-[#8B5A3C] font-bold text-xl mt-6">Từ 120.000đ</p>
+       </div>
+
+
+       <div class="bg-white rounded-[2rem] p-10 text-center shadow-sm hover:shadow-2xl transition-all duration-500">
+         <div class="w-44 h-44 mx-auto mb-8 rounded-full overflow-hidden shadow-md">
+           <img src="{% static 'images/spa.jpg' %}" alt="Spa & Skin Care" class="w-full h-full object-cover">
+         </div>
+         <h3 class="text-2xl font-semibold mb-3" style="color: #432525;">Spa & Skin Care</h3>
+         <p class="text-gray-600 leading-relaxed px-6">
+           Chăm sóc da mặt chuyên sâu, phục hồi làn da tươi trẻ
+         </p>
+         <p class="text-[#8B5A3C] font-bold text-xl mt-6">Từ 320.000đ</p>
+       </div>
+
+
+     </div>
+   </div>
+ </section>
+
+
+ <!-- Bảng giá dịch vụ -->
+ <section class="py-16 bg-[#F5F0ED]">
+   <div class="max-w-6xl mx-auto px-6">
+     <div class="text-center mb-10">
+       <h2 class="text-4xl font-bold" style="color: #000000;">BẢNG GIÁ DỊCH VỤ</h2>
+       <p class="mt-3 text-lg" style="color: #000000;">
+         Danh sách đầy đủ các dịch vụ và mức giá tại 2000 Nails Eyelash
+       </p>
+     </div>
+
+
+     <div class="max-w-4xl mx-auto">
+       <div class="border-[2px] border-[#BFA19A] rounded-[10px] overflow-hidden shadow-lg">
+         <img src="{% static 'images/banggia.jpg' %}"
+              alt="Bảng Giá Dịch Vụ 2000 Nails Eyelash"
+              class="w-full h-auto block">
+       </div>
+     </div>
+   </div>
+ </section>
+
+
+ <!-- Ưu đãi đặc biệt -->
+ <section class="py-16 bg-[#F5F0ED]">
+   <div class="max-w-7xl mx-auto px-6">
+     <div class="py-20 px-8 text-center" style="background-color: #BFA19A; border-radius: 30px;">
+       <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">
+         Ưu Đãi Đặc Biệt Tháng 5
+       </h2>
+       <p class="text-white text-lg md:text-xl font-medium leading-relaxed">
+         Giảm ngay 20% cho tất cả các dịch vụ Nail khi đặt lịch online
+       </p>
+     </div>
+   </div>
+ </section>
+
+
+ <!-- Khách hàng nói gì -->
+ <section class="py-16 bg-[#F5F0ED]">
+   <div class="max-w-6xl mx-auto px-6">
+     <div class="text-center mb-12">
+       <h2 class="text-4xl font-bold" style="color: #000000;">Khách Hàng Nói Gì Về Chúng Tôi</h2>
+       <p style="color: #000000;">Phản hồi thực tế từ những khách hàng thân thiết</p>
+     </div>
+
+
+     <div class="grid md:grid-cols-3 gap-8">
+       <div class="relative group h-full">
+         <div class="absolute inset-0 bg-[#8D7772] rounded-[20px] translate-x-2 translate-y-2"></div>
+         <div class="relative bg-[#FAFAFA] border border-[#F1F1F1] rounded-[20px] p-10 shadow-sm h-full flex flex-col justify-between">
+           <div>
+             <div class="flex justify-center text-amber-400 mb-6 text-2xl">
+               ★★★★★
+             </div>
+             <p class="italic text-center text-[#000000] leading-relaxed text-[18px]">
+               "Dịch vụ tuyệt vời! Nhân viên Nhã làm móng rất kỹ và đẹp. Không gian yên tĩnh, thư giãn."
+             </p>
+           </div>
+           <p class="text-center italic text-[#000000] text-[14px] mt-8">-- Chị Lan, Đà Nẵng --</p>
+         </div>
+       </div>
+
+
+       <div class="relative group h-full">
+         <div class="absolute inset-0 bg-[#8D7772] rounded-[20px] translate-x-2 translate-y-2"></div>
+         <div class="relative bg-[#FAFAFA] border border-[#F1F1F1] rounded-[20px] p-10 shadow-sm h-full flex flex-col justify-between">
+           <div>
+             <div class="flex justify-center text-amber-400 mb-6 text-2xl">
+               ★★★★★
+             </div>
+             <p class="italic text-center text-[#000000] leading-relaxed text-[18px]">
+               "Đặt lịch online rất tiện, đến là làm luôn không phải chờ. Rất thích gội đầu dưỡng sinh ở đây."
+             </p>
+           </div>
+           <p class="text-center italic text-[#000000] text-[14px] mt-8">-- Chị Hương, Đà Nẵng --</p>
+         </div>
+       </div>
+
+
+       <div class="relative group h-full">
+         <div class="absolute inset-0 bg-[#8D7772] rounded-[20px] translate-x-2 translate-y-2"></div>
+         <div class="relative bg-[#FAFAFA] border border-[#F1F1F1] rounded-[20px] p-10 shadow-sm h-full flex flex-col justify-between">
+           <div>
+             <div class="flex justify-center text-amber-400 mb-6 text-2xl">
+               ★★★★★
+             </div>
+             <p class="italic text-center text-[#000000] leading-relaxed text-[18px]">
+               "Giá cả hợp lý so với chất lượng. Sẽ quay lại ủng hộ tiệm dài dài."
+             </p>
+           </div>
+           <p class="text-center italic text-[#000000] text-[14px] mt-8 pt-6 border-t border-gray-100">-- Chị Hoa, Đà Nẵng --</p>
+         </div>
+       </div>
+     </div>
+   </div>
+ </section>
+
+
+ <!-- Footer -->
+ <footer class="bg-[#8B7167] text-white py-16">
+   <div class="max-w-6xl mx-auto px-6">
+     <div class="grid md:grid-cols-4 gap-10">
+       <div>
+         <h4 class="font-bold text-xl mb-4" style="font-family: 'Poppins', sans-serif;">2000 Nails Eyelash</h4>
+         <p class="text-sm opacity-80 leading-relaxed">
+           Nơi vẻ đẹp của bạn được chăm sóc toàn diện.<br>
+           Chúng tôi cam kết mang lại trải nghiệm tốt nhất.
+         </p>
+       </div>
+
+
+       <div>
+         <h5 class="font-medium mb-5">Liên Kết Nhanh</h5>
+         <ul class="space-y-3 text-sm">
+           <li><a href="{% url 'nails_backend:TrangChu_KH' %}" class="hover:underline">Trang Chủ</a></li>
+           <li><a href="#" class="hover:underline">Dịch Vụ</a></li>
+           <li><a href="{% url 'nails_backend:DatLichHen' %}" class="hover:underline">Đặt lịch</a></li>
+           <li><a href="#" class="hover:underline">Về chúng tôi</a></li>
+         </ul>
+       </div>
+
+
+       <div>
+         <h5 class="font-medium mb-5">Liên hệ</h5>
+         <div class="space-y-4 text-sm">
+           <div class="flex items-start gap-3">
+             <span class="text-xl mt-0.5">📍</span>
+             <span>123 Nguyễn Văn Linh, Đà Nẵng</span>
+           </div>
+           <div class="flex items-start gap-3">
+             <span class="text-xl mt-0.5">☎️</span>
+             <span>0905 123 456</span>
+           </div>
+           <div class="flex items-start gap-3">
+             <span class="text-xl mt-0.5">✉️</span>
+             <span>contact@2000nails.com</span>
+           </div>
+         </div>
+       </div>
+
+
+       <div>
+         <h5 class="font-medium mb-5">Giờ Mở Cửa</h5>
+         <div class="text-sm space-y-1">
+           <p>Thứ 2 - Thứ 6: 08:00 - 22:00</p>
+           <p>Thứ 7 - Chủ Nhật: 08:00 - 21:00</p>
+         </div>
+       </div>
+     </div>
+
+
+     <div class="border-t border-white/20 mt-12 pt-8 text-center text-xs opacity-70">
+       © 2026 2000 Nails Eyelash. All rights reserved.
+     </div>
+   </div>
+ </footer>
+
+
+ </div>
+
+
+ <!-- ==================== SCRIPT ĐĂNG KÝ & ĐĂNG NHẬP ==================== -->
+ <script>
+   // === Các hàm quản lý modal ===
+   function openRegister() {
+       closeAllModals();
+       document.getElementById('registerModal').classList.remove('hidden');
+       document.getElementById('registerModal').classList.add('flex');
+   }
+
+
+   function openLogin() {
+       closeAllModals();
+       document.getElementById('loginModal').classList.remove('hidden');
+       document.getElementById('loginModal').classList.add('flex');
+   }
+
+
+   function closeAllModals() {
+       const modals = document.querySelectorAll('#registerModal, #loginModal');
+       modals.forEach(modal => {
+           modal.classList.add('hidden');
+           modal.classList.remove('flex');
+       });
+   }
+
+
+   // === Xử lý form ĐĂNG NHẬP (giữ nguyên như bạn đã có) ===
+   document.getElementById('loginForm').addEventListener('submit', function(e) {
+       e.preventDefault();
+
+
+       const username = document.getElementById('login_username').value.trim();
+       const password = document.getElementById('login_password').value.trim();
+
+
+       if (!username || !password) {
+           alert("Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu!");
+           return;
+       }
+
+
+       const formData = new FormData();
+       formData.append('username', username);
+       formData.append('password', password);
+
+
+       fetch('/DangNhap_KH/', {
+           method: 'POST',
+           body: formData,
+           headers: {
+               'X-CSRFToken': '{{ csrf_token }}'
+           }
+       })
+       .then(response => response.json())
+       .then(data => {
+           if (data.success) {
+               window.location.href = data.redirect_url;
+           } else {
+               alert(data.message || "Đăng nhập thất bại!");
+           }
+       })
+       .catch(error => {
+           console.error('Error:', error);
+           alert("Có lỗi xảy ra, vui lòng thử lại sau!");
+       });
+   });
+
+
+   // === XỬ LÝ FORM ĐĂNG KÝ ===
+   document.getElementById('registerForm').addEventListener('submit', async function(e) {
+       e.preventDefault();
+
+
+       // Lấy dữ liệu từ form
+       const formData = {
+           username: document.getElementById('reg_username').value.trim(),
+           full_name: document.getElementById('reg_fullname').value.trim(),
+           phone_number: document.getElementById('reg_phone').value.trim(),
+           email: document.getElementById('reg_email').value.trim() || '',
+           password: document.getElementById('reg_password').value.trim(),
+       };
+
+
+       // Kiểm tra dữ liệu cơ bản
+       if (!formData.username || !formData.full_name || !formData.phone_number || !formData.password) {
+           alert("Vui lòng nhập đầy đủ các trường bắt buộc!");
+           return;
+       }
+
+
+       if (formData.phone_number.length !== 10 || isNaN(formData.phone_number)) {
+           alert("Số điện thoại phải là 10 chữ số!");
+           return;
+       }
+
+
+       try {
+           const response = await fetch('http://127.0.0.1:8000/register/', {       // ← URL đúng theo urls.py
+               method: 'POST',
+               headers: {
+                   'Content-Type': 'application/json',
+                   'X-CSRFToken': getCSRFToken()               // Hàm lấy CSRF an toàn hơn
+               },
+               body: JSON.stringify(formData)
+           });
+
+
+           const data = await response.json();
+
+
+           if (response.ok && data.success) {
+               alert('🎉 Đăng ký thành công!\n\nVui lòng đăng nhập để tiếp tục.');
+               closeAllModals();
+               openLogin();                    // Tự động mở form đăng nhập
+               // Hoặc reload: window.location.reload();
+           } else {
+               // Hiển thị lỗi chi tiết từ backend
+               let errorMsg = "Đăng ký thất bại!";
+               if (data.errors) {
+                   errorMsg += "\n" + Object.values(data.errors)
+                                     .map(err => Array.isArray(err) ? err[0] : err)
+                                     .join("\n");
+               }
+               alert(errorMsg);
+           }
+       } catch (error) {
+           console.error('Error:', error);
+           alert('❌ Có lỗi kết nối với server. Vui lòng thử lại sau!');
+       }
+   });
+
+
+   // Hàm lấy CSRF Token an toàn
+   function getCSRFToken() {
+       // Cách 1: Lấy từ input hidden (khuyến nghị)
+       let token = document.querySelector('[name=csrfmiddlewaretoken]');
+       if (token) return token.value;
+
+
+       // Cách 2: Lấy từ cookie
+       const cookies = document.cookie.split(';');
+       for (let cookie of cookies) {
+           const [name, value] = cookie.trim().split('=');
+           if (name === 'csrftoken') return value;
+       }
+       return '{{ csrf_token }}';   // fallback
+   }
+
+
+   // Đóng modal bằng phím Esc
+   window.addEventListener('keydown', (e) => {
+       if (e.key === 'Escape') closeAllModals();
+   });
+
+
+   // Đóng modal khi click ra ngoài (tùy chọn)
+   document.addEventListener('click', function(e) {
+       const registerModal = document.getElementById('registerModal');
+       const loginModal = document.getElementById('loginModal');
+
+
+       if (e.target === registerModal) closeAllModals();
+       if (e.target === loginModal) closeAllModals();
+   });
+ </script>
+</body>
+</html>

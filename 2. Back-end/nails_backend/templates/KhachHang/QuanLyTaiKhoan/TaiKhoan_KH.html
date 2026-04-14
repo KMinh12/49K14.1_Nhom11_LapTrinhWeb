@@ -1,0 +1,456 @@
+{% extends 'base_KH.html' %}
+
+
+
+
+{% block title %}Quản lý tài khoản - 2000 Nails Eyelash{% endblock %}
+{% block header_title %}Quản lý tài khoản cá nhân{% endblock %}
+
+
+
+
+{% block extra_css %}
+<style>
+.info-panel {
+  background-color: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  overflow: hidden;
+}
+
+
+
+
+.header-panel {
+  background-color: #BFA19A;
+  color: white;
+  padding: 1.25rem 1.75rem;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+
+
+
+.input-field {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1.5px solid #DEDEDE;
+  border-radius: 0.75rem;
+  outline: none;
+  transition: all 0.3s;
+  color: #000000;
+  background-color: white;
+}
+
+
+
+
+.input-field:focus {
+  border-color: #BFA19A;
+  box-shadow: 0 0 0 3px rgba(191, 161, 154, 0.2);
+}
+
+
+
+
+.label-text {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+
+
+
+.btn-custom {
+  background-color: #BFA19A;
+  color: white;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+
+
+
+.btn-custom:hover {
+  filter: brightness(0.95);
+  transform: translateY(-1px);
+}
+
+
+
+
+.btn-secondary {
+  background-color: white;
+  color: #6B7280;
+  font-weight: bold;
+  border: 1.5px solid #D1D5DB;
+  transition: 0.3s;
+}
+
+
+
+
+.btn-secondary:hover {
+  background-color: #F9FAFB;
+}
+
+
+
+
+.modal-hidden {
+  display: none;
+}
+
+
+
+
+.modal-flex {
+  display: flex;
+}
+</style>
+{% endblock %}
+
+
+
+
+{% block content %}
+{% if messages %}
+<div class="mb-6 space-y-2">
+  {% for message in messages %}
+    <div class="px-4 py-3 rounded-xl {% if message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">
+      {{ message }}
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+
+
+
+<div class="flex gap-10">
+<!-- Thông tin chi tiết -->
+<div class="flex-[2] info-panel h-fit">
+  <div class="header-panel">Thông tin chi tiết</div>
+  <div class="p-10">
+    <div class="grid grid-cols-2 gap-x-10 gap-y-6">
+      <div>
+        <label class="label-text">Họ và tên</label>
+        <input type="text" value="{{ user.full_name|default:'' }}" class="input-field" readonly>
+      </div>
+
+
+
+
+      <div>
+        <label class="label-text">Giới tính</label>
+        <input type="text"
+               value="{% if user.gender == 'M' %}Nam{% elif user.gender == 'F' %}Nữ{% elif user.gender == 'O' %}Khác{% endif %}"
+               class="input-field"
+               readonly>
+      </div>
+
+
+
+
+      <div>
+        <label class="label-text">Mã khách hàng</label>
+        <input type="text"
+               value="{{ customer.customer_code|default:'' }}"
+               class="input-field bg-gray-50 cursor-not-allowed"
+               readonly>
+      </div>
+
+
+
+
+      <div>
+        <label class="label-text">Email</label>
+        <input type="email" value="{{ user.email|default:'' }}" class="input-field" readonly>
+      </div>
+
+
+
+
+      <div>
+        <label class="label-text">Số điện thoại</label>
+        <input type="text" value="{{ user.phone_number|default:'' }}" class="input-field" readonly>
+      </div>
+
+
+
+
+      <div>
+        <label class="label-text">Ngày sinh</label>
+        <input type="text"
+               value="{% if user.birthday %}{{ user.birthday|date:'d/m/Y' }}{% endif %}"
+               class="input-field"
+               readonly>
+      </div>
+
+
+
+
+      <div class="col-span-2">
+        <label class="label-text">Địa chỉ</label>
+        <input type="text" value="{{ user.address|default:'' }}" class="input-field" readonly>
+      </div>
+    </div>
+
+
+
+
+    <button type="button"
+            onclick="openUpdateInfoModal()"
+            class="mt-10 px-10 py-3 btn-custom rounded-xl text-lg shadow-md">
+      Cập nhật thông tin
+    </button>
+  </div>
+</div>
+
+
+
+
+<!-- Bảo mật -->
+<div class="flex-1 info-panel h-fit">
+  <div class="header-panel">Bảo mật</div>
+  <div class="p-8 space-y-6">
+    <div>
+      <label class="label-text">Tên tài khoản</label>
+      <input type="text" value="{{ user.username|default:'' }}" class="input-field bg-gray-50" disabled>
+    </div>
+
+
+
+
+    <div>
+      <label class="label-text">Mật khẩu</label>
+      <input type="password" value="12345678" class="input-field bg-gray-50" disabled>
+    </div>
+
+
+
+
+    <button type="button"
+            onclick="openPasswordModal()"
+            class="w-full py-3 btn-custom rounded-xl text-lg shadow-md">
+      Đổi mật khẩu
+    </button>
+  </div>
+</div>
+</div>
+
+
+
+
+<!-- Modal cập nhật thông tin -->
+<div id="updateInfoModal" class="fixed inset-0 z-[100] modal-hidden items-center justify-center p-4">
+<div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeUpdateInfoModal()"></div>
+
+
+
+
+<div class="bg-white w-full max-w-5xl rounded-[3rem] shadow-2xl relative z-10 overflow-hidden">
+  <div class="header-panel text-center py-6">
+    <h2 class="text-white text-4xl font-bold uppercase tracking-widest">Cập nhật thông tin chi tiết</h2>
+  </div>
+
+
+
+
+  <form method="post" class="p-10 space-y-8 overflow-y-auto max-h-[85vh]">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="update_info">
+
+
+
+
+    <div class="grid grid-cols-2 gap-x-12 gap-y-8">
+      <div>
+        <label class="label-text">Họ và tên</label>
+        <input type="text" name="full_name" value="{{ user.full_name|default:'' }}" class="input-field">
+      </div>
+
+
+
+
+      <div>
+        <label class="label-text">Giới tính</label>
+        <select name="gender" class="input-field">
+          <option value="">-- Chọn giới tính --</option>
+          <option value="M" {% if user.gender == 'M' %}selected{% endif %}>Nam</option>
+          <option value="F" {% if user.gender == 'F' %}selected{% endif %}>Nữ</option>
+          <option value="O" {% if user.gender == 'O' %}selected{% endif %}>Khác</option>
+        </select>
+      </div>
+
+
+
+
+      <div>
+        <label class="label-text">Email</label>
+        <input type="email" name="email" value="{{ user.email|default:'' }}" class="input-field">
+      </div>
+
+
+
+
+      <div>
+        <label class="label-text">Số điện thoại</label>
+        <input type="text" name="phone_number" value="{{ user.phone_number|default:'' }}" class="input-field">
+      </div>
+
+
+
+
+      <div>
+        <label class="label-text">Ngày sinh</label>
+        <input type="date"
+               name="birthday"
+               value="{% if user.birthday %}{{ user.birthday|date:'Y-m-d' }}{% endif %}"
+               class="input-field">
+      </div>
+
+
+
+
+      <div class="col-span-2">
+        <label class="label-text">Địa chỉ</label>
+        <input type="text" name="address" value="{{ user.address|default:'' }}" class="input-field">
+      </div>
+    </div>
+
+
+
+
+    <div class="pt-4 flex justify-center">
+      <button type="submit"
+              class="w-64 py-4 btn-custom text-white text-2xl font-bold rounded-2xl shadow-md">
+        Lưu
+      </button>
+    </div>
+  </form>
+</div>
+</div>
+
+
+
+
+<!-- Modal đổi mật khẩu -->
+<div id="passwordModal" class="fixed inset-0 z-[100] modal-hidden items-center justify-center p-4">
+<div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closePasswordModal()"></div>
+
+
+
+
+<div class="bg-white w-full max-w-3xl rounded-[3rem] shadow-2xl relative z-10 overflow-hidden">
+  <div class="header-panel text-center py-6">
+    <h2 class="text-white text-4xl font-bold uppercase tracking-widest">Đổi mật khẩu</h2>
+  </div>
+
+
+
+
+  <form method="post" class="p-10 space-y-8">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="change_password">
+
+
+
+
+    <div>
+      <label class="label-text">Mật khẩu hiện tại <span class="text-red-500">*</span></label>
+      <input type="password"
+             name="current_password"
+             placeholder="Nhập mật khẩu hiện tại"
+             class="input-field">
+    </div>
+
+
+
+
+    <div>
+      <label class="label-text">Mật khẩu mới <span class="text-red-500">*</span></label>
+      <input type="password"
+             name="new_password"
+             placeholder="Nhập mật khẩu mới (tối thiểu 6 ký tự)"
+             class="input-field">
+    </div>
+
+
+
+
+    <div>
+      <label class="label-text">Xác nhận mật khẩu <span class="text-red-500">*</span></label>
+      <input type="password"
+             name="confirm_password"
+             placeholder="Nhập lại mật khẩu mới"
+             class="input-field">
+    </div>
+
+
+
+
+    <div class="flex gap-6 pt-4">
+      <button type="button"
+              onclick="closePasswordModal()"
+              class="flex-1 py-4 btn-secondary rounded-2xl text-2xl shadow-sm">
+        Huỷ
+      </button>
+
+
+
+
+      <button type="submit"
+              class="flex-1 py-4 btn-custom text-white rounded-2xl text-2xl shadow-md">
+        Đổi mật khẩu
+      </button>
+    </div>
+  </form>
+</div>
+</div>
+
+
+
+
+<script>
+function openUpdateInfoModal() {
+  const modal = document.getElementById('updateInfoModal');
+  modal.classList.remove('modal-hidden');
+  modal.classList.add('modal-flex');
+  document.body.style.overflow = 'hidden';
+}
+
+
+
+
+function closeUpdateInfoModal() {
+  const modal = document.getElementById('updateInfoModal');
+  modal.classList.remove('modal-flex');
+  modal.classList.add('modal-hidden');
+  document.body.style.overflow = 'auto';
+}
+
+
+
+
+function openPasswordModal() {
+  const modal = document.getElementById('passwordModal');
+  modal.classList.remove('modal-hidden');
+  modal.classList.add('modal-flex');
+  document.body.style.overflow = 'hidden';
+}
+
+
+
+
+function closePasswordModal() {
+  const modal = document.getElementById('passwordModal');
+  modal.classList.remove('modal-flex');
+  modal.classList.add('modal-hidden');
+  document.body.style.overflow = 'auto';
+}
+</script>
+{% endblock %}
