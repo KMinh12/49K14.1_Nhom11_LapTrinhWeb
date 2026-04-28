@@ -239,52 +239,7 @@
           <p style="color: #000000;">Chăm sóc toàn diện từ móng tay đến thư giãn cơ thể</p>
         </div>
 
-        <div class="space-y-10">
-
-          <div onclick="openServiceDetail('nail')" class="bg-white rounded-[2rem] p-10 text-center shadow-sm hover:shadow-2xl transition-all duration-500 cursor-pointer">
-            <div class="w-44 h-44 mx-auto mb-8 rounded-full overflow-hidden shadow-md">
-              <img src="{% static 'images/lamnailnghethuat.jpg' %}" alt="Làm Nail Nghệ Thuật" class="w-full h-full object-cover">
-            </div>
-            <h3 class="text-2xl font-bold mb-4" style="color: #432525;">Làm Nail Nghệ Thuật</h3>
-            <p class="leading-relaxed px-4 text-base font-medium" style="color: #000000;">
-              Thiết kế móng chuyên nghiệp, cập nhật xu hướng mới nhất với sơn Gel cao cấp
-            </p>
-            <p class="font-bold text-2xl mt-8" style="color: #8b7167;">Từ 150.000đ</p>
-          </div>
-
-          <div onclick="openServiceDetail('mi')" class="bg-white rounded-[2rem] p-10 text-center shadow-sm hover:shadow-2xl transition-all duration-500 cursor-pointer">
-            <div class="w-44 h-44 mx-auto mb-8 rounded-full overflow-hidden shadow-md">
-              <img src="{% static 'images/lamminghethuat.jpg' %}" alt="Làm Mi Nghệ Thuật" class="w-full h-full object-cover">
-            </div>
-            <h3 class="text-2xl font-bold mb-4" style="color: #432525;">Làm Mi Nghệ Thuật</h3>
-            <p class="leading-relaxed px-4 text-base font-medium" style="color: #000000;">
-              Thiết kế mi chuyên nghiệp phù hợp với từng khuôn mặt
-            </p>
-            <p class="font-bold text-2xl mt-8" style="color: #8B7167;">Từ 250.000đ</p>
-          </div>
-
-          <div onclick="openServiceDetail('goidau')" class="bg-white rounded-[2rem] p-10 text-center shadow-sm hover:shadow-2xl transition-all duration-500 cursor-pointer">
-            <div class="w-44 h-44 mx-auto mb-8 rounded-full overflow-hidden shadow-md">
-              <img src="{% static 'images/goidauduongsinh.jpg' %}" alt="Gội Đầu Dưỡng Sinh" class="w-full h-full object-cover">
-            </div>
-            <h3 class="text-2xl font-semibold mb-3" style="color: #432525;">Gội Đầu Dưỡng Sinh</h3>
-            <p class="text-gray-600 leading-relaxed px-6">
-              Liệu trình gội đầu thảo dược kết hợp massage cổ vai gáy giảm stress
-            </p>
-            <p class="text-[#8B5A3C] font-bold text-xl mt-6">Từ 120.000đ</p>
-          </div>
-
-          <div onclick="openServiceDetail('spa')" class="bg-white rounded-[2rem] p-10 text-center shadow-sm hover:shadow-2xl transition-all duration-500 cursor-pointer">
-            <div class="w-44 h-44 mx-auto mb-8 rounded-full overflow-hidden shadow-md">
-              <img src="{% static 'images/spa.jpg' %}" alt="Spa & Skin Care" class="w-full h-full object-cover">
-            </div>
-            <h3 class="text-2xl font-semibold mb-3" style="color: #432525;">Spa & Skin Care</h3>
-            <p class="text-gray-600 leading-relaxed px-6">
-              Chăm sóc da mặt chuyên sâu, phục hồi làn da tươi trẻ
-            </p>
-            <p class="text-[#8B5A3C] font-bold text-xl mt-6">Từ 320.000đ</p>
-          </div>
-
+        <div id="featured-services-container" class="space-y-10">
         </div>
 
         <div class="mt-14 text-center">
@@ -384,89 +339,74 @@
   </div>
 
   <script>
-    const serviceDetails = {
-      'nail': {
-          title: 'Làm Nail Nghệ Thuật',
-          img: '{% static "images/lamnailnghethuat.jpg" %}',
-          desc: 'Thiết kế móng chuyên nghiệp, cập nhật xu hướng mới nhất với sơn Gel cao cấp. Các bước thực hiện bao gồm làm sạch móng, nhặt da, tạo form, phủ sơn gel và đính đá/trang trí nghệ thuật theo yêu cầu riêng của khách hàng. Chúng tôi cam kết sử dụng dụng cụ tiệt trùng an toàn tuyệt đối.',
-          price: 'Từ 150.000đ',
-          reviews: [
-              { name: 'Chị Lan, Đà Nẵng', rating: 5, text: 'Dịch vụ tuyệt vời! Nhân viên Nhã làm móng rất kỹ và đẹp. Không gian yên tĩnh, thư giãn.' },
-              { name: 'Chị Hoa, Đà Nẵng', rating: 5, text: 'Giá cả hợp lý so với chất lượng. Màu sơn rất bền, hơn 3 tuần vẫn không bong. Sẽ quay lại ủng hộ tiệm dài dài.' }
-          ]
-      },
-      'mi': {
-          title: 'Làm Mi Nghệ Thuật',
-          img: '{% static "images/lamminghethuat.jpg" %}',
-          desc: 'Thiết kế mi chuyên nghiệp, phân tích dáng mắt để tư vấn kiểu nối phù hợp nhất. Sử dụng mi lụa siêu nhẹ, keo nối chính hãng Hàn Quốc an toàn, không gây cay mắt hay rụng mi thật. Cam kết mang lại hàng mi cong vút tự nhiên, bền đẹp và nhẹ mắt.',
-          price: 'Từ 250.000đ',
-          reviews: [
-              { name: 'Chị Trang, Đà Nẵng', rating: 5, text: 'Mi nối rất tự nhiên, mỏng nhẹ, không bị cộm hay nặng mắt chút nào. Form mi giữ được khá lâu.' }
-          ]
-      },
-      'goidau': {
-          title: 'Gội Đầu Dưỡng Sinh',
-          img: '{% static "images/goidauduongsinh.jpg" %}',
-          desc: 'Liệu trình gội đầu bằng các loại thảo dược tự nhiên kết hợp massage cổ vai gáy, ấn huyệt giúp đả thông kinh lạc, đánh bay cơn đau mỏi, giảm stress, làm sạch sâu da đầu và nuôi dưỡng tóc chắc khỏe. Phù hợp cho dân văn phòng hoặc người làm việc căng thẳng.',
-          price: 'Từ 120.000đ',
-          reviews: [
-              { name: 'Chị Hương, Đà Nẵng', rating: 5, text: 'Đặt lịch online rất tiện, đến là làm luôn không phải chờ. Rất thích gội đầu dưỡng sinh ở đây, massage siêu đã.' }
-          ]
-      },
-      'spa': {
-          title: 'Spa & Skin Care',
-          img: '{% static "images/spa.jpg" %}',
-          desc: 'Chăm sóc da mặt chuyên sâu, phục hồi làn da tươi trẻ. Gồm các bước chuẩn y khoa: làm sạch, tẩy tế bào chết, xông hơi hút mụn, massage nâng cơ chống lão hóa, đắp mặt nạ cao cấp và chiếu ánh sáng sinh học giúp da hấp thu dưỡng chất tối ưu.',
-          price: 'Từ 320.000đ',
-          reviews: [
-              { name: 'Chị Linh, Đà Nẵng', rating: 5, text: 'Da mặt căng bóng và sáng hẳn ra sau khi làm liệu trình. Không gian thơm mùi tinh dầu dễ chịu, nhân viên massage rất êm tay.' }
-          ]
-      },
-      'massagebody': {
-          title: 'Massage Body Đá Nóng',
-          img: '{% static "images/spa.jpg" %}',
-          desc: 'Thư giãn cơ bắp, giảm đau nhức và giải tỏa căng thẳng với liệu pháp massage đá nóng chuyên sâu kết hợp tinh dầu thảo mộc tự nhiên.',
-          price: 'Từ 350.000đ',
-          reviews: [
-              { name: 'Chị Mai, Đà Nẵng', rating: 5, text: 'Nhân viên lực tay rất tốt, massage xong người nhẹ bẫng, ngủ rất ngon.' }
-          ]
-      },
-      'chagot': {
-          title: 'Chà Gót Chân Hồng',
-          img: '{% static "images/lamnailnghethuat.jpg" %}',
-          desc: 'Loại bỏ tế bào chết, vết chai sần, kết hợp ủ kem dưỡng mềm mịn mang lại đôi gót chân hồng hào, mềm mại tức thì.',
-          price: 'Từ 90.000đ',
-          reviews: []
-      },
-      'uonmi': {
-          title: 'Uốn Mi Collagen',
-          img: '{% static "images/lamminghethuat.jpg" %}',
-          desc: 'Uốn mi cong tự nhiên kết hợp phủ collagen đen bóng giúp mi trông dày dặn và chắc khỏe hơn, không bị khô gãy.',
-          price: 'Từ 150.000đ',
-          reviews: []
-      }
-    };
+    let allServicesData = [];
 
-    function openServiceDetail(key) {
-        const data = serviceDetails[key];
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            const res = await fetch('/api/services/');
+            allServicesData = await res.json();
+            renderFeaturedServices();
+        } catch (e) {
+            console.error("Lỗi tải dịch vụ:", e);
+        }
+    });
+
+    function renderFeaturedServices() {
+        const container = document.getElementById('featured-services-container');
+        if (!container) return;
+        container.innerHTML = '';
+
+        const featured = allServicesData.slice(0, 4);
+
+        featured.forEach(service => {
+            const imgHtml = service.image ? service.image : '{% static "images/lamnailnghethuat.jpg" %}';
+            const price = Number(service.price).toLocaleString('vi-VN');
+
+            const div = document.createElement('div');
+            div.className = "bg-white rounded-[2rem] p-10 text-center shadow-sm hover:shadow-2xl transition-all duration-500 cursor-pointer";
+            div.onclick = () => openServiceDetail(service.id);
+
+            div.innerHTML = `
+                <div class="w-44 h-44 mx-auto mb-8 rounded-full overflow-hidden shadow-md">
+                    <img src="${imgHtml}" alt="${service.name}" class="w-full h-full object-cover">
+                </div>
+                <h3 class="text-2xl font-bold mb-4" style="color: #432525;">${service.name}</h3>
+                <p class="leading-relaxed px-4 text-base font-medium" style="color: #000000;">
+                    ${service.description || 'Dịch vụ chăm sóc sắc đẹp cao cấp, mang lại trải nghiệm thư giãn tuyệt vời.'}
+                </p>
+                <p class="font-bold text-2xl mt-8" style="color: #8b7167;">Từ ${price}đ</p>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function openServiceDetail(serviceId) {
+        const data = allServicesData.find(s => s.id === serviceId);
         if(!data) return;
 
-        document.getElementById('sd-img').src = data.img;
-        document.getElementById('sd-title').innerText = data.title;
-        document.getElementById('sd-price').innerText = data.price;
-        document.getElementById('sd-desc').innerText = data.desc;
+        document.getElementById('sd-img').src = data.image ? data.image : '{% static "images/lamnailnghethuat.jpg" %}';
+        document.getElementById('sd-title').innerText = data.name;
+        document.getElementById('sd-price').innerText = `Từ ${Number(data.price).toLocaleString('vi-VN')}đ`;
+        document.getElementById('sd-desc').innerText = data.description || 'Dịch vụ chăm sóc sắc đẹp cao cấp, mang lại trải nghiệm thư giãn tuyệt vời. Vui lòng liên hệ để biết thêm chi tiết.';
 
         const reviewsContainer = document.getElementById('sd-reviews');
         reviewsContainer.innerHTML = '';
-        if (data.reviews.length > 0) {
+
+        if (data.reviews && data.reviews.length > 0) {
             data.reviews.forEach(r => {
+                let imgTag = '';
+                if (r.image) {
+                    imgTag = `<img src="${r.image}" class="mt-4 w-32 h-32 object-cover rounded-lg border">`;
+                }
                 reviewsContainer.innerHTML += `
                     <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
                         <div class="flex justify-between items-center mb-3">
-                            <span class="font-bold text-gray-800">${r.name}</span>
+                            <span class="font-bold text-gray-800">${r.customer_name}</span>
                             <span class="text-amber-400 text-lg">` + '★'.repeat(r.rating) + `</span>
                         </div>
-                        <p class="text-gray-600 italic leading-relaxed">"${r.text}"</p>
+                        <p class="text-gray-600 italic leading-relaxed">"${r.comment}"</p>
+                        ${imgTag}
+                        <p class="text-xs text-gray-400 mt-2">${r.created_at}</p>
                     </div>
                 `;
             });
@@ -516,22 +456,25 @@
         const term = keyword.toLowerCase().trim();
 
         let hasResult = false;
-        for (const [key, data] of Object.entries(serviceDetails)) {
-            if (data.title.toLowerCase().includes(term)) {
+        allServicesData.forEach(data => {
+            if (data.name.toLowerCase().includes(term)) {
                 hasResult = true;
+                const imgHtml = data.image ? data.image : '{% static "images/lamnailnghethuat.jpg" %}';
+                const price = Number(data.price).toLocaleString('vi-VN');
+
                 const item = document.createElement('div');
                 item.className = `flex items-center gap-4 p-5 bg-gray-50 hover:bg-[#FDF8F5] rounded-2xl cursor-pointer transition border hover:border-[#BFA19A]`;
                 item.innerHTML = `
-                    <img src="${data.img}" class="w-14 h-14 object-cover rounded-xl">
+                    <img src="${imgHtml}" class="w-14 h-14 object-cover rounded-xl">
                     <div class="flex-1">
-                        <p class="font-bold text-gray-700">${data.title}</p>
+                        <p class="font-bold text-gray-700">${data.name}</p>
                     </div>
-                    <p class="font-bold text-[#8B7167] text-xl">${data.price}</p>
+                    <p class="font-bold text-[#8B7167] text-xl">${price}đ</p>
                 `;
-                item.onclick = () => openServiceDetail(key);
+                item.onclick = () => openServiceDetail(data.id);
                 container.appendChild(item);
             }
-        }
+        });
 
         if (!hasResult) {
             container.innerHTML = `<p class="text-center py-12 text-gray-400">Không tìm thấy dịch vụ</p>`;
