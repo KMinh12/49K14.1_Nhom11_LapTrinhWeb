@@ -1,0 +1,26 @@
+{% extends 'base_KH.html' %}
+{% load static %}
+
+{% block title %}Trang chủ - 2000 Nails Eyelash{% endblock %}
+{% block header_title %}Trang chủ{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-center min-h-[70vh] bg-gray-50">
+   <div class="text-center max-w-lg">
+       <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-6 whitespace-nowrap">
+       Xin chào, <span class="bg-gradient-to-r from-[#BFA19A] to-[#8b7167] bg-clip-text text-transparent italic">
+       {{ user.full_name|default:user.username }}
+       </span>!
+       </h1>
+       <p class="text-xl text-gray-600 mb-12">
+           Chào mừng bạn đến với 2000 Nails & Eyelash<br>
+           Hãy bắt đầu hành trình làm đẹp của bạn hôm nay.
+       </p>
+
+       <a href="{% url 'nails_backend:DatLichHen' %}"
+          class="inline-block bg-[#BFA19A] hover:bg-[#a67f6f] text-white font-bold text-xl px-12 py-5 rounded-3xl transition transform hover:scale-105">
+           Đặt lịch hẹn ngay
+       </a>
+   </div>
+</div>
+{% endblock %}

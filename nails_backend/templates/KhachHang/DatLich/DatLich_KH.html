@@ -1,0 +1,588 @@
+{% extends 'base_KH.html' %}
+{% load static %}
+
+
+{% block title %}Đặt lịch hẹn - 2000 Nails Eyelash{% endblock %}
+{% block header_title %}Đặt lịch hẹn{% endblock %}
+
+
+{% block extra_css %}
+<style>
+   .double-underline {
+       position: relative;
+       padding-bottom: 12px;
+       margin-bottom: 30px;
+   }
+   .double-underline::after {
+       content: '';
+       position: absolute;
+       left: 0;
+       bottom: 4px;
+       width: 100%;
+       height: 1.5px;
+       background-color: #BFA19A;
+   }
+
+
+   /* Hover chung cho dịch vụ, nhân viên và slot giờ */
+   .hover-card, .employee-card {
+       transition: all 0.3s ease;
+   }
+   .hover-card:hover, .employee-card:hover {
+       border-color: #8B5A3C;
+       background-color: #FDF8F5;
+       transform: translateY(-2px);
+   }
+
+
+   /* === Slot giờ (Lịch trống) - Đồng bộ với các phần khác === */
+   .slot-item {
+       border: 1px solid #DEDEDE;
+       border-radius: 10px;
+       padding: 14px 12px;
+       text-align: center;
+       font-weight: 600;
+       background: white;
+       cursor: pointer;
+       transition: all 0.3s ease;
+       font-size: 14.5px;
+   }
+
+
+   /* Hover cho giờ trống - Giống hệt phong cách dịch vụ & nhân viên */
+   .slot-item:hover:not(.slot-booked) {
+       border-color: #8B5A3C;
+       background-color: #FDF8F5;
+       transform: translateY(-2px);
+   }
+
+
+   /* Khi đã chọn giờ */
+   .slot-selected {
+       background-color: #FDF8F5 !important;
+       border: 2px solid #BFA19A !important;
+       color: #BFA19A;
+       box-shadow: 0 2px 8px rgba(191, 161, 154, 0.15);
+   }
+
+
+   /* Giờ đã đặt */
+   .slot-booked {
+       background-color: #F3F4F6;
+       color: #9CA3AF;
+       cursor: not-allowed;
+       border-color: #E5E7EB;
+   }
+
+
+   .info-huge-label {
+       color: #B9B9B9;
+       font-weight: 100;
+       font-size: 1.35rem;
+       margin-bottom: 6px;
+   }
+   .info-value-text {
+       font-weight: 500;
+       color: #000;
+       font-size: 1rem;
+       padding-bottom: 14px;
+       border-bottom: 1.5px solid #F2F2F2;
+       margin-bottom: 24px;
+   }
+
+
+   /* Ô tìm kiếm modal */
+   .modal-search-container {
+       position: relative;
+       margin-bottom: 24px;
+   }
+   .modal-search-input {
+       width: 100%;
+       padding: 15px 20px 15px 52px;
+       border: 1px solid #E5E5E5;
+       border-radius: 9999px;
+       font-size: 1rem;
+       background: #f8f8f8;
+   }
+   .modal-search-input:focus {
+       border-color: #BFA19A;
+       background: white;
+   }
+   .modal-search-icon {
+       position: absolute;
+       left: 20px;
+       top: 50%;
+       transform: translateY(-50%);
+       color: #9CA3AF;
+   }
+</style>
+{% endblock %}
+
+
+{% block content %}
+{% csrf_token %}
+
+
+<div class="flex-1 overflow-y-auto p-10 flex gap-10 items-start">
+
+
+   <!-- Left Panel -->
+   <div class="flex-1 bg-white rounded-3xl p-12 shadow-sm border border-gray-50 h-fit space-y-12">
+
+
+       <!-- 1. Chọn dịch vụ -->
+       <section>
+           <h3 class="text-[1.65rem] font-bold text-[#333] double-underline">1. Chọn dịch vụ</h3>
+           <div id="featured-services" class="grid grid-cols-4 gap-5"></div>
+
+
+           <button onclick="openServiceModal()"
+               class="w-full mt-10 py-4 bg-[#8B5A3C] hover:bg-[#6F4A2E] text-white rounded-full text-sm font-bold uppercase tracking-widest transition-all">
+               XEM THÊM DỊCH VỤ
+           </button>
+       </section>
+
+
+       <!-- 2. Chọn nhân viên -->
+       <section>
+           <h3 class="text-[1.65rem] font-bold text-[#333] double-underline">2. Chọn nhân viên</h3>
+           <div id="employee-list" class="grid grid-cols-3 gap-4"></div>
+       </section>
+
+
+       <!-- 3. Lịch trống -->
+       <section>
+           <h3 class="text-xl font-bold mb-6 text-[#555]" id="employee-name-title">Lịch trống của ...</h3>
+
+
+           <div class="mb-6">
+               <label class="block text-sm font-medium mb-2">Chọn ngày</label>
+               <input type="date" id="booking-date"
+                   class="w-full p-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-[#BFA19A]"
+                   onchange="loadTimeSlots()">
+           </div>
+
+
+           <div id="time-slots" class="grid grid-cols-4 gap-3"></div>
+       </section>
+   </div>
+
+
+   <!-- Right Panel -->
+   <aside class="w-96 flex-shrink-0">
+       <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
+           <div class="bg-[#8B7167] p-6 text-center">
+               <h3 class="text-white font-bold text-xl uppercase tracking-widest">Thông tin đặt lịch</h3>
+           </div>
+           <div class="p-8 space-y-1" id="booking-summary">
+               <div>
+                   <p class="info-huge-label">Dịch vụ</p>
+                   <p class="info-value-text" id="summary-service">Chưa chọn</p>
+               </div>
+               <div>
+                   <p class="info-huge-label">Nhân viên</p>
+                   <p class="info-value-text" id="summary-employee">Chưa chọn</p>
+               </div>
+               <div>
+                   <p class="info-huge-label">Thời gian</p>
+                   <p class="info-value-text" id="summary-time">Chưa chọn</p>
+               </div>
+               <div class="bg-[#FDF1F0] p-6 rounded-2xl mt-8">
+                   <p class="info-huge-label">Tổng tiền</p>
+                   <p class="text-[#E97373] text-3xl font-bold mt-1" id="summary-price">0 đ</p>
+               </div>
+           </div>
+           <div class="p-8 pt-0">
+               <button onclick="confirmBooking()"
+               class="w-full py-4 bg-[#8B5A3C] hover:bg-[#6F4A2E] text-white font-bold rounded-2xl text-lg uppercase tracking-widest transition hover:brightness-90">
+               XÁC NHẬN ĐẶT LỊCH
+               </button>
+           </div>
+       </div>
+   </aside>
+</div>
+
+
+<!-- Modal Chọn dịch vụ (giữ nguyên như trước) -->
+<div id="serviceModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+   <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeServiceModal()"></div>
+   <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl p-10 relative z-10 max-h-[90vh] overflow-hidden flex flex-col">
+       <div class="flex justify-between items-center mb-6">
+           <h2 class="text-3xl font-bold text-gray-800">Chọn dịch vụ</h2>
+           <button onclick="closeServiceModal()" class="text-4xl text-gray-400 hover:text-gray-600">×</button>
+       </div>
+
+
+       <div class="modal-search-container">
+           <span class="modal-search-icon">
+               <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                   <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 01-14 0 7 7 0 0114 0z" />
+               </svg>
+           </span>
+           <input type="text" id="modal-service-search" placeholder="Tìm kiếm theo tên dịch vụ..."
+               class="modal-search-input" onkeyup="filterServicesInModal(this.value)">
+       </div>
+
+
+       <div id="modal-service-list" class="flex-1 overflow-y-auto pr-3 space-y-3"></div>
+   </div>
+</div>
+
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+   let selectedService = null;
+   let selectedEmployee = null;
+   let selectedDate = null;
+   let selectedTime = null;
+   let allServicesData = [];
+   let allEmployeesData = [];
+
+
+   const featuredServiceNames = ["Sơn Gel", "Cạo mặt", "Tẩy da chết mặt", "Nối mi"];
+
+
+   // ==================== LOAD DỊCH VỤ ====================
+   async function loadAllServices() {
+       try {
+           const res = await fetch('/api/services/');
+           allServicesData = await res.json();
+           renderFeaturedServices();
+       } catch (e) {
+           console.error("Lỗi tải dịch vụ:", e);
+       }
+   }
+
+
+   function renderFeaturedServices() {
+       const container = document.getElementById('featured-services');
+       container.innerHTML = '';
+       const featured = allServicesData.filter(s => featuredServiceNames.includes(s.name));
+
+
+       featured.forEach(service => {
+           const div = document.createElement('div');
+           div.className = `slot-item hover-card ${selectedService && selectedService.id === service.id ? 'slot-selected' : ''}`;
+           div.innerHTML = `
+               <p class="font-bold text-gray-800">${service.name}</p>
+               <p class="text-xs text-gray-500 mt-1">${service.duration} phút</p>
+               <p class="font-bold text-[#BFA19A] text-xl mt-3">${Number(service.price).toLocaleString('vi-VN')} đ</p>
+           `;
+           div.onclick = () => selectService(service);
+           container.appendChild(div);
+       });
+   }
+
+
+   function selectService(service) {
+       selectedService = service;
+       document.getElementById('summary-service').textContent = service.name;
+       document.getElementById('summary-price').textContent = Number(service.price).toLocaleString('vi-VN') + ' đ';
+       renderFeaturedServices();
+       closeServiceModal();
+   }
+
+
+   // ==================== LOAD NHÂN VIÊN ====================
+   async function loadAllEmployees() {
+       try {
+           const res = await fetch('/api/employees/');
+           allEmployeesData = await res.json();
+           renderEmployeeList();
+       } catch (e) {
+           console.error("Lỗi tải nhân viên:", e);
+       }
+   }
+
+
+   function renderEmployeeList() {
+       const container = document.getElementById('employee-list');
+       container.innerHTML = '';
+
+
+       allEmployeesData.forEach(emp => {
+           const fullName = emp.full_name || 'Nhân viên';
+           const div = document.createElement('div');
+           div.className = `employee-card bg-white border border-gray-200 rounded-2xl p-4 text-center cursor-pointer hover:border-[#BFA19A] ${selectedEmployee && selectedEmployee.id === emp.id ? 'ring-2 ring-[#BFA19A]' : ''}`;
+           div.innerHTML = `<p class="font-semibold">${fullName}</p>`;
+           div.onclick = () => selectEmployee(emp);
+           container.appendChild(div);
+       });
+   }
+
+
+   function selectEmployee(emp) {
+       selectedEmployee = emp;
+       document.getElementById('summary-employee').textContent = emp.full_name || 'Nhân viên';
+       document.getElementById('employee-name-title').textContent = `Lịch trống của ${emp.full_name || 'Nhân viên'}`;
+
+
+       renderEmployeeList();
+
+
+       // Tự động chọn ngày hôm nay và load lịch trống
+       const today = new Date().toISOString().split('T')[0];
+       const dateInput = document.getElementById('booking-date');
+
+
+       dateInput.min = today; // <-- Dòng này sẽ làm mờ/khóa các ngày trong quá khứ
+       dateInput.value = today;
+
+
+       loadTimeSlots();
+   }
+
+
+   // ==================== LOAD LỊCH TRỐNG ====================
+   async function loadTimeSlots() {
+       if (!selectedEmployee) {
+           document.getElementById('time-slots').innerHTML =
+               '<p class="col-span-4 text-center text-gray-400 py-8">Vui lòng chọn nhân viên trước</p>';
+           return;
+       }
+
+
+       const dateInput = document.getElementById('booking-date').value;
+       if (!dateInput) return;
+
+
+       selectedDate = dateInput;
+       const container = document.getElementById('time-slots');
+       container.innerHTML = '<p class="col-span-4 text-center text-gray-500 py-8">Đang tải lịch trống...</p>';
+
+
+       try {
+           const url = `/api/employees/${selectedEmployee.id}/available-slots/?date=${dateInput}`;
+           const res = await fetch(url);
+
+
+           if (!res.ok) throw new Error(`Lỗi server: ${res.status}`);
+
+
+           const data = await res.json();
+           container.innerHTML = '';
+
+
+           if (!data.slots || data.slots.length === 0) {
+               container.innerHTML = '<p class="col-span-4 text-center text-gray-400 py-8">Không có lịch trống trong ngày này</p>';
+               return;
+           }
+
+
+           // === THÊM LOGIC CHẶN GIỜ QUÁ KHỨ ===
+           const now = new Date();
+           // Format ngày hiện tại thành YYYY-MM-DD để so sánh
+           const todayStr = now.getFullYear() + '-' +
+                            String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                            String(now.getDate()).padStart(2, '0');
+           const currentHour = now.getHours();
+           const currentMinute = now.getMinutes();
+
+
+           data.slots.forEach(slot => {
+               let isPast = false;
+
+
+               // Nếu ngày chọn đúng là hôm nay, tiến hành kiểm tra giờ
+               if (selectedDate === todayStr) {
+                   // Tách "08:30" thành 8 và 30
+                   const [slotHour, slotMinute] = slot.time.split(':').map(Number);
+
+
+                   // Nếu giờ nhỏ hơn giờ hiện tại HOẶC bằng giờ nhưng phút nhỏ hơn
+                   if (slotHour < currentHour || (slotHour === currentHour && slotMinute <= currentMinute)) {
+                       isPast = true;
+                   }
+               }
+
+
+               // Slot chỉ hiển thị trống khi Backend cho phép (is_available) VÀ chưa ở trong quá khứ
+               const isActuallyAvailable = slot.is_available && !isPast;
+
+
+               const div = document.createElement('div');
+               // Nếu không available, thêm class 'slot-booked' để xám màu và chặn click
+               div.className = `slot-item hover-card ${isActuallyAvailable ? '' : 'slot-booked'} ${selectedTime === slot.time ? 'slot-selected' : ''}`;
+               div.textContent = slot.time;
+
+
+               if (isActuallyAvailable) {
+                   div.onclick = () => selectTimeSlot(slot.time);
+               }
+               container.appendChild(div);
+           });
+
+
+       } catch (err) {
+           console.error("Lỗi tải lịch trống:", err);
+           container.innerHTML = `<p class="col-span-4 text-center text-red-500 py-8">Lỗi tải lịch trống<br><small>${err.message}</small></p>`;
+       }
+   }
+
+
+   function selectTimeSlot(time) {
+       selectedTime = time;
+       document.getElementById('summary-time').textContent = `${selectedDate} ${time}`;
+       loadTimeSlots(); // refresh để cập nhật class selected
+   }
+
+
+   // ==================== MODAL DỊCH VỤ ====================
+   function openServiceModal() {
+       const modal = document.getElementById('serviceModal');
+       document.getElementById('modal-service-search').value = '';
+       renderModalServiceList(allServicesData);
+       modal.classList.remove('hidden');
+       modal.classList.add('flex');
+   }
+
+
+   function closeServiceModal() {
+       const modal = document.getElementById('serviceModal');
+       modal.classList.add('hidden');
+       modal.classList.remove('flex');
+   }
+
+
+   function renderModalServiceList(services) {
+       const container = document.getElementById('modal-service-list');
+       container.innerHTML = '';
+       if (services.length === 0) {
+           container.innerHTML = `<p class="text-center py-12 text-gray-400">Không tìm thấy dịch vụ</p>`;
+           return;
+       }
+       services.forEach(service => {
+           const imgHtml = service.image
+               ? `<img src="${service.image}" class="w-14 h-14 object-cover rounded-xl">`
+               : `<div class="w-14 h-14 bg-gray-200 rounded-xl flex items-center justify-center text-xs text-gray-400">No img</div>`;
+
+
+           const item = document.createElement('div');
+           item.className = `flex items-center gap-4 p-5 bg-gray-50 hover:bg-[#FDF8F5] rounded-2xl cursor-pointer transition border hover:border-[#BFA19A]`;
+           item.innerHTML = `
+               ${imgHtml}
+               <div class="flex-1">
+                   <p class="font-bold text-gray-700">${service.name}</p>
+                   <p class="text-sm text-gray-500">${service.duration} phút</p>
+               </div>
+               <p class="font-bold text-[#8B7167] text-xl">${Number(service.price).toLocaleString('vi-VN')} đ</p>
+           `;
+           item.onclick = () => selectService(service);
+           container.appendChild(item);
+       });
+   }
+
+
+   function filterServicesInModal(keyword) {
+       const term = keyword.toLowerCase().trim();
+       const filtered = term === '' ? allServicesData : allServicesData.filter(s => s.name.toLowerCase().includes(term));
+       renderModalServiceList(filtered);
+   }
+
+
+   // ==================== XÁC NHẬN ĐẶT LỊCH  ====================
+   function confirmBooking() {
+       if (!selectedService || !selectedEmployee || !selectedDate || !selectedTime) {
+           alert("❌ Vui lòng chọn đầy đủ: Dịch vụ, Nhân viên, Ngày và Giờ!");
+           return;
+       }
+
+
+       const btnConfirm = document.querySelector('button[onclick="confirmBooking()"]');
+
+
+       // 1. Chống nhấn đúp: Nếu nút đang ở trạng thái xử lý thì không làm gì cả
+       if (btnConfirm && btnConfirm.disabled) {
+           return;
+       }
+
+
+       // 2. Vô hiệu hóa nút ngay lập tức khi vừa click
+       if (btnConfirm) {
+           btnConfirm.disabled = true;
+           btnConfirm.innerHTML = 'ĐANG XỬ LÝ...';
+           btnConfirm.style.opacity = '0.7';
+           btnConfirm.style.cursor = 'not-allowed';
+       }
+
+
+       const bookingData = {
+           service: selectedService.id,
+           employee: selectedEmployee.id,
+           booking_date: selectedDate,
+           start_time: selectedTime
+       };
+
+
+       const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+
+       fetch('/api/bookings/create/', {
+           method: 'POST',
+           headers: {
+               'Content-Type': 'application/json',
+               'X-CSRFToken': csrfToken
+           },
+           body: JSON.stringify(bookingData),
+           credentials: 'same-origin'
+       })
+       .then(response => response.json().then(data => ({ status: response.status, body: data })))
+       .then(result => {
+           if (result.status === 201 || result.body.success) {
+               alert("🎉 Đặt lịch thành công!");
+               // Chuyển trang ngay lập tức
+               window.location.href = result.body.redirect_url || '/LichHenCuaToi/';
+           } else {
+               // Khôi phục lại nút bấm nếu có lỗi thật
+               if (btnConfirm) {
+                   btnConfirm.disabled = false;
+                   btnConfirm.innerHTML = 'XÁC NHẬN ĐẶT LỊCH';
+                   btnConfirm.style.opacity = '1';
+                   btnConfirm.style.cursor = 'pointer';
+               }
+
+
+               // 3. Xử lý logic bóc tách thông báo lỗi chuẩn xác từ Django REST
+               console.log("Lỗi từ Backend:", result.body);
+               let errorMsg = "";
+
+
+               // Nếu backend trả về mảng lỗi cho từng trường (VD: {"start_time": ["Nhân viên này đã có lịch..."]})
+               if (typeof result.body === 'object' && !result.body.success && !result.body.message) {
+                   for (const [field, messages] of Object.entries(result.body)) {
+                       errorMsg += `- ${messages[0]}\n`;
+                   }
+               } else {
+                   errorMsg = result.body.message || "Vui lòng kiểm tra lại thông tin.";
+                   if (result.body.errors) {
+                       errorMsg += "\n" + JSON.stringify(result.body.errors);
+                   }
+               }
+
+
+               alert("❌ Đặt lịch thất bại:\n" + errorMsg);
+           }
+       })
+       .catch(error => {
+           console.error('Lỗi kết nối:', error);
+           alert("❌ Không thể kết nối đến máy chủ. Vui lòng thử lại!");
+           if (btnConfirm) {
+               btnConfirm.disabled = false;
+               btnConfirm.innerHTML = 'XÁC NHẬN ĐẶT LỊCH';
+               btnConfirm.style.opacity = '1';
+               btnConfirm.style.cursor = 'pointer';
+           }
+       });
+   }
+
+
+   // ==================== KHỞI TẠO TRANG ====================
+   document.addEventListener('DOMContentLoaded', () => {
+       loadAllServices();
+       loadAllEmployees();
+   });
+</script>
+{% endblock %}

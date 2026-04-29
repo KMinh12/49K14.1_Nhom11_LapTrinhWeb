@@ -1,0 +1,158 @@
+{% extends 'base_QL.html' %}
+{% load static %}
+
+{% block title %}Quản Lý Khách Hàng - 2000 Nails & Eyelash{% endblock %}
+{% block page_title %}Quản lý khách hàng{% endblock %}
+
+{% block extra_css %}
+<style>
+   .content-container { padding: 40px; }
+   .toolbar {
+       background-color: white; padding: 20px; border-radius: 15px;
+       display: flex; justify-content: space-between; align-items: center;
+       margin-bottom: 30px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+   }
+   .search-box { position: relative; width: 400px; }
+   .search-box input {
+       width: 100%; padding: 12px 15px 12px 45px; border: 1px solid #D1C4BE;
+       border-radius: 12px; outline: none; background-color: #fcfcfc;
+   }
+   .search-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; opacity: 0.6; }
+
+   /* Table & Scroll */
+   .table-container {
+       background-color: white; border-radius: 15px; overflow-y: auto;
+       max-height: 360px; /* Hiển thị tối đa 4 khách hàng */
+       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+   }
+   table { width: 100%; border-collapse: separate; border-spacing: 0; }
+   thead th {
+       position: sticky; top: 0; background-color: #8B7167; color: white;
+       z-index: 10; height: 60px; padding: 0 15px; font-weight: 500; text-align: left;
+   }
+   thead th:first-child { border-top-left-radius: 15px; }
+   thead th:last-child { border-top-right-radius: 15px; text-align: center; }
+   td { padding: 15px; height: 75px; border-bottom: 1px solid #EEE; color: #444; vertical-align: middle; }
+   td:last-child { text-align: center; }
+
+   /* Modal Reviews */
+   .modal-overlay {
+       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+       background: rgba(0, 0, 0, 0.5); display: none; justify-content: center; align-items: center; z-index: 1000;
+   }
+   .modal-content { background: white; width: 550px; border-radius: 15px; overflow: hidden; animation: fadeIn 0.3s; }
+   .modal-header { background-color: #C1A79E; color: white; padding: 20px; text-align: center; font-size: 20px; font-weight: bold; }
+   .modal-body { padding: 20px; max-height: 400px; overflow-y: auto; }
+   .review-card {
+       background: #fdfdfd; border-radius: 12px; padding: 15px; margin-bottom: 15px;
+       box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.05); border-left: 5px solid #8B7167;
+   }
+   .review-header { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px; }
+   .service-name { font-weight: bold; color: #6F554B; }
+   .stars { color: #FFA500; margin-bottom: 8px; }
+   .btn-close { background-color: #C1A79E; color: white; border: none; padding: 10px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+
+   @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-container">
+   <div class="toolbar">
+       <div class="search-box">
+           <img src="{% static 'icon/18_Timkiem.png' %}" class="search-icon">
+           <input type="text" id="searchInput" placeholder="Tìm kiếm theo tên hoặc mã khách hàng">
+       </div>
+   </div>
+
+   <div class="table-container">
+       <table>
+           <thead>
+               <tr>
+                   <th style="width: 10%;">Mã KH</th>
+                   <th style="width: 20%;">Họ và tên KH</th>
+                   <th style="width: 15%;">SĐT</th>
+                   <th style="width: 20%;">Email</th>
+                   <th style="width: 15%;">Tên đăng nhập</th>
+                   <th style="width: 10%;">Mật khẩu</th>
+                   <th style="width: 10%;">Đánh giá</th>
+               </tr>
+           </thead>
+           <tbody id="customerTableBody"></tbody>
+       </table>
+   </div>
+</div>
+
+<div class="modal-overlay" id="reviewModal">
+   <div class="modal-content">
+       <div class="modal-header">Đánh giá của khách: <span id="modalCustomerName"></span></div>
+       <div class="modal-body">
+           <div id="reviewList"></div>
+       </div>
+       <div class="modal-footer" style="padding: 15px; display: flex; justify-content: center;">
+           <button class="btn-close" onclick="closeModal()">Đóng</button>
+       </div>
+   </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+   let customers = {{ customers_json|safe }};
+
+   function renderTable(data) {
+       const tbody = document.getElementById('customerTableBody');
+       tbody.innerHTML = data.length ? '' : '<tr><td colspan="7" style="text-align:center;">Không tìm thấy khách hàng nào</td></tr>';
+      
+       data.forEach(cust => {
+           tbody.innerHTML += `
+               <tr>
+                   <td>${cust.id}</td>
+                   <td>${cust.name}</td>
+                   <td>${cust.phone}</td>
+                   <td>${cust.email}</td>
+                   <td>${cust.user}</td>
+                   <td>********</td>
+                   <td>
+                       <button class="btn-icon" onclick="openReview('${cust.id}')">
+                           <img src="{% static 'icon/9_iconconmat.png' %}" style="width:22px;">
+                       </button>
+                   </td>
+               </tr>`;
+       });
+   }
+
+   function openReview(id) {
+       const cust = customers.find(c => c.id === id);
+       if (!cust) return;
+
+       document.getElementById('modalCustomerName').innerText = cust.name;
+       const list = document.getElementById('reviewList');
+       list.innerHTML = cust.reviews.length ? '' : '<p style="text-align:center;color:#888;">Khách hàng chưa có đánh giá.</p>';
+
+       cust.reviews.forEach(rev => {
+           list.innerHTML += `
+               <div class="review-card">
+                   <div class="review-header">
+                       <span class="service-name">${rev.service}</span>
+                       <span style="color:#888;">${rev.date}</span>
+                   </div>
+                   <div class="stars">${'⭐'.repeat(rev.rating)}</div>
+                   <div style="font-style:italic; color:#555;">"${rev.comment}"</div>
+               </div>`;
+       });
+       document.getElementById('reviewModal').style.display = 'flex';
+   }
+
+   function closeModal() { document.getElementById('reviewModal').style.display = 'none'; }
+  
+   document.getElementById('searchInput').oninput = (e) => {
+       const kw = e.target.value.toLowerCase().trim();
+       renderTable(customers.filter(c => c.name.toLowerCase().includes(kw) || c.id.toLowerCase().includes(kw)));
+   };
+
+   window.onclick = (e) => { if(e.target == document.getElementById('reviewModal')) closeModal(); };
+   renderTable(customers);
+</script>
+{% endblock %}
+
